@@ -55,3 +55,17 @@ MIT (`LICENSE`). No warranty.
 
 ## Attribution
 Auralith369 is built by **PHI369 Labs**.
+
+## Testing
+
+```bash
+npm test
+npm run build
+```
+
+## Quality Checks
+
+```bash
+npm test
+npm run build
+```

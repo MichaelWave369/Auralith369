@@ -1,5 +1,5 @@
 // Auralith369 v0.1.0-alpha — local-first visual alchemy by PHI369 Labs
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
   normalizeAuralithProject

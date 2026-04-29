@@ -1,3 +1,4 @@
+import React from 'react';
 import Auralith369 from './Auralith369';
 import ErrorBoundary from './ErrorBoundary';
 

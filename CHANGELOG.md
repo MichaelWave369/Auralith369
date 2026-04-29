@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.0-alpha
+- Fixed GitHub Pages runtime boot failure caused by missing React JSX imports.
 - Hardened Pages workflow for first-time GitHub Pages enablement.
 - Configured Vite base path for /Auralith369/.
 - Added GitHub Pages deployment workflow for online demo hosting.

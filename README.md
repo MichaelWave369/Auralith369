@@ -33,6 +33,14 @@ npm run build
 npm run preview
 ```
 
+## Install / Dev / Test / Build
+```bash
+npm install
+npm run dev
+npm test
+npm run build
+```
+
 ## File Formats
 - Project: `.auralith`
 - Receipt: `.auralith-receipt.json`
@@ -55,3 +63,26 @@ MIT (`LICENSE`). No warranty.
 
 ## Attribution
 Auralith369 is built by **PHI369 Labs**.
+
+## Quality Checks
+
+- Smoke check: if the app shows an **Auralith369 runtime error** panel, open browser console and report the displayed error.
+
+```bash
+npm install
+npm test
+npm run build
+npm run dev
+```
+
+## Online Demo
+
+Once GitHub Pages is enabled for this repository, Auralith369 will be available at:
+
+https://michaelwave369.github.io/Auralith369/
+
+If the page is not live yet, enable GitHub Pages under repository Settings → Pages and set Source to GitHub Actions.
+
+If the online demo shows only a blank background, open DevTools Console and report any message from:
+- Auralith369 failed to boot
+- Auralith369 runtime error

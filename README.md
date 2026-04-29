@@ -33,6 +33,14 @@ npm run build
 npm run preview
 ```
 
+## Install / Dev / Test / Build
+```bash
+npm install
+npm run dev
+npm test
+npm run build
+```
+
 ## File Formats
 - Project: `.auralith`
 - Receipt: `.auralith-receipt.json`

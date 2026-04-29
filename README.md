@@ -74,3 +74,7 @@ Once GitHub Pages is enabled for this repository, Auralith369 will be available 
 https://michaelwave369.github.io/Auralith369/
 
 If the page is not live yet, enable GitHub Pages under repository Settings → Pages and set Source to GitHub Actions.
+
+If the online demo shows only a blank background, open DevTools Console and report any message from:
+- Auralith369 failed to boot
+- Auralith369 runtime error

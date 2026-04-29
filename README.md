@@ -62,3 +62,10 @@ Auralith369 is built by **PHI369 Labs**.
 npm test
 npm run build
 ```
+
+## Quality Checks
+
+```bash
+npm test
+npm run build
+```

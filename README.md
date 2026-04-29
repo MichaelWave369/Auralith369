@@ -58,6 +58,8 @@ Auralith369 is built by **PHI369 Labs**.
 
 ## Quality Checks
 
+- Smoke check: if the app shows an **Auralith369 runtime error** panel, open browser console and report the displayed error.
+
 ```bash
 npm install
 npm test

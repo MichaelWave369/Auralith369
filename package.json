@@ -1,0 +1,31 @@
+{
+  "name": "auralith369",
+  "version": "0.1.0-alpha",
+  "description": "Auralith369 \u2014 Local-first visual alchemy workstation by PHI369 Labs.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "npm run build"
+  },
+  "keywords": [
+    "image-editor",
+    "canvas",
+    "react",
+    "vite",
+    "local-first",
+    "creative-tools",
+    "poster-generator",
+    "phi369",
+    "visual-alchemy"
+  ],
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "vite": "^5.4.10"
+  }
+}

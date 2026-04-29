@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.0-alpha
+- Polished public alpha editor layout after successful GitHub Pages boot.
 - Fixed GitHub Pages runtime boot failure caused by missing React JSX imports.
 - Hardened Pages workflow for first-time GitHub Pages enablement.
 - Configured Vite base path for /Auralith369/.

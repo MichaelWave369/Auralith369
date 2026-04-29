@@ -347,13 +347,13 @@ export default function Auralith369(){
     <style>{`input[type="range"]::-webkit-slider-thumb{appearance:none;width:6px;height:6px;background:${C.ac};border-radius:50%;cursor:pointer;border:1px solid ${C.bg}}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:${C.bg}}::-webkit-scrollbar-thumb{background:${C.bd};border-radius:2px}select{background:${C.srf};color:${C.tx};border:1px solid ${C.bd};border-radius:2px;padding:1px 2px;font-family:${FN};font-size:6.5px;outline:none}`}</style>
 
     {/* TOP */}
-    <div style={{display:"flex",alignItems:"center",gap:1,padding:"2px 5px",borderBottom:`1px solid ${C.bd}`,background:C.pn,flexShrink:0,flexWrap:"wrap"}}>
+    <div style={{display:"flex",alignItems:"center",gap:1,padding:"8px 12px",borderBottom:`1px solid ${C.bd}`,background:C.pn,flexShrink:0,flexWrap:"wrap"}}>
       <div style={{display:"flex",alignItems:"center",gap:3,marginRight:3}}>
         <div style={{width:17,height:17,borderRadius:3,background:`linear-gradient(135deg,${C.ac},${C.pr})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:800,color:C.bg}}>Φ</div>
-        <span style={{fontSize:8.5,fontWeight:600,letterSpacing:.5}}>Auralith369</span>
-        <span style={{fontSize:5,color:C.tm,padding:"0 2px",border:`1px solid ${C.bd}`,borderRadius:1}}>{APP_VERSION}</span>
+        <span style={{fontSize:12,fontWeight:600,letterSpacing:.5}}>Auralith369</span>
+        <span style={{fontSize:10,color:C.tm,padding:"2px 6px",border:`1px solid ${C.bd}`,borderRadius:1}}>{APP_VERSION}</span>
       </div>
-      <Bt onClick={newC} sm>New</Bt><Bt onClick={()=>fR.current?.click()} sm>Open</Bt><Bt onClick={exportProject} sm>Save .auralith</Bt><Bt onClick={doExp} sm style={{color:C.ac}}>Export</Bt><Bt onClick={exportReceipt} sm style={{color:C.gd}}>Receipt</Bt>
+      <Bt onClick={newC} sm style={{fontSize:12}}>New</Bt><Bt onClick={()=>fR.current?.click()} sm style={{fontSize:12}}>Open</Bt><Bt onClick={exportProject} sm style={{fontSize:12}}>Save .auralith</Bt><Bt onClick={doExp} sm style={{color:C.ac,fontSize:12}}>Export</Bt><Bt onClick={exportReceipt} sm style={{color:C.gd,fontSize:12}}>Receipt</Bt>
       <input ref={fR} type="file" accept=".auralith,application/json,image/*" style={{display:"none"}} onChange={e=>{openAsset(e.target.files?.[0]);e.target.value="";}}/>
       <div style={{width:1,height:11,background:C.bd}}/>
       <Bt onClick={undo} sm>↶</Bt><Bt onClick={redo} sm>↷</Bt>
@@ -372,14 +372,14 @@ export default function Auralith369(){
       {quickA.length>0&&<>{quickA.slice(0,3).map((a,i)=>(<Bt key={i} sm onClick={()=>{const pf=Object.entries(PF).find(([,v])=>v.n===a);if(pf)apPxF(pf[0]);const pl=PLUGINS.find(p=>p.name===a);if(pl)applyPlugin(pl);}}>{a}</Bt>))}</>}
       <div style={{flex:1}}/>
       <Bt onClick={()=>sShowK(v=>!v)} sm>⌨</Bt>
-      <Bt onClick={()=>setZm(z=>Math.max(z-.25,.05))} sm>−</Bt><span style={{minWidth:20,textAlign:"center",fontSize:7}}>{Math.round(zm*100)}%</span><Bt onClick={()=>setZm(z=>Math.min(z+.25,12))} sm>+</Bt>
+      <Bt onClick={()=>setZm(z=>Math.max(z-.25,.05))} sm>−</Bt><span style={{minWidth:36,textAlign:"center",fontSize:12,fontWeight:600}}>{Math.round(zm*100)}%</span><Bt onClick={()=>setZm(z=>Math.min(z+.25,12))} sm>+</Bt>
       <span style={{fontSize:5,color:C.tm,marginLeft:2}}>{sz.w}×{sz.h}</span>
     </div>
 
     <div style={{display:"flex",flex:1,overflow:"hidden"}}>
       {/* LEFT */}
       <div style={{width:44,background:C.pn,borderRight:`1px solid ${C.bd}`,display:"flex",flexDirection:"column",alignItems:"center",padding:"2px 0",gap:0,flexShrink:0,overflow:"auto"}}>
-        {TLS.map(t=>(<button key={t.id} title={`${t.n} (${t.k})`} onClick={()=>setTl(t.id)} style={{width:28,height:20,display:"flex",alignItems:"center",justifyContent:"center",background:tl===t.id?C.sa:"transparent",border:tl===t.id?`1px solid ${C.ac}22`:"1px solid transparent",borderRadius:2,cursor:"pointer",fontSize:10,color:tl===t.id?C.ac:C.td,flexShrink:0}}>{t.ic}</button>))}
+        {TLS.map(t=>(<button key={t.id} title={`${t.n} (${t.k})`} onClick={()=>setTl(t.id)} style={{width:34,height:28,display:"flex",alignItems:"center",justifyContent:"center",background:tl===t.id?C.sa:"transparent",border:tl===t.id?`1px solid ${C.ac}22`:"1px solid transparent",borderRadius:2,cursor:"pointer",fontSize:14,color:tl===t.id?C.ac:C.td,flexShrink:0,boxShadow:tl===t.id?`0 0 0 1px ${C.ac}55 inset`:"none"}}>{t.ic}</button>))}
         <div style={{flex:1}}/>
         <div style={{position:"relative",width:20,height:20,margin:"2px 0"}}><div style={{position:"absolute",top:0,left:0,width:13,height:13,borderRadius:2,background:fg,border:`1px solid ${C.bd}`,zIndex:2,cursor:"pointer"}} onClick={()=>document.getElementById("fg7")?.click()}/><div style={{position:"absolute",bottom:0,right:0,width:13,height:13,borderRadius:2,background:bg_,border:`1px solid ${C.bd}`,cursor:"pointer"}} onClick={()=>document.getElementById("bg7")?.click()}/><input id="fg7" type="color" value={fg} onChange={e=>setFg(e.target.value)} style={{position:"absolute",opacity:0,width:0}}/><input id="bg7" type="color" value={bg_} onChange={e=>setBgC(e.target.value)} style={{position:"absolute",opacity:0,width:0}}/></div>
         <button onClick={()=>{const t=fg;setFg(bg_);setBgC(t);}} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:7,fontFamily:FN}}>⇄</button>
@@ -406,7 +406,7 @@ export default function Auralith369(){
 
         <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",overflow:"auto",background:`radial-gradient(ellipse at center,${C.srf}28 0%,${C.bg} 100%)`,position:"relative"}} onWheel={onWheel}>
           {drOv&&<div style={{position:"absolute",inset:0,background:`${C.ac}08`,border:`2px dashed ${C.ac}`,borderRadius:5,display:"flex",alignItems:"center",justifyContent:"center",zIndex:100,pointerEvents:"none"}}><span style={{fontSize:12,color:C.ac}}>Drop</span></div>}
-          {!hasI&&!ld.current[1]&&<div style={{position:"absolute",display:"flex",flexDirection:"column",alignItems:"center",gap:3,color:C.tm,zIndex:5,pointerEvents:"none"}}><span style={{fontSize:32,opacity:.07}}>Φ</span><span style={{fontSize:8}}>Drop · Open · Ctrl+V</span></div>}
+          {!hasI&&!ld.current[1]&&<div style={{position:"absolute",zIndex:6,pointerEvents:"none",display:"flex",alignItems:"center",justifyContent:"center",inset:0,padding:20}}><div style={{maxWidth:420,width:"100%",background:"rgba(12,18,34,.88)",border:`1px solid ${C.bd}`,borderRadius:12,padding:"18px 20px",boxShadow:"0 10px 30px rgba(0,0,0,.35)",textAlign:"center"}}><div style={{fontSize:22,fontWeight:700,color:C.tx,marginBottom:4}}>Auralith369</div><div style={{fontSize:13,color:C.ac,marginBottom:12}}>Local-first visual alchemy</div><div style={{fontSize:12,color:C.td,lineHeight:1.6}}>• Drop an image here<br/>• Open a .auralith project<br/>• Paste from clipboard with Ctrl+V</div><div style={{fontSize:11,color:C.tm,marginTop:10}}>Your work stays local in the browser.</div></div></div>}
           <div style={{transform:`scale(${zm}) rotate(${cRot}deg)`,transformOrigin:"center",position:"relative",boxShadow:`0 0 14px ${C.ag}`,transition:"transform .2s"}}>
             <canvas ref={mcR} width={sz.w} height={sz.h} style={{display:"block",cursor}} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerLeave={onUp}/>
             <canvas ref={olR} width={sz.w} height={sz.h} style={{position:"absolute",top:0,left:0,pointerEvents:"none"}}/>
@@ -417,7 +417,7 @@ export default function Auralith369(){
       {/* RIGHT */}
       <div style={{width:280,background:C.pn,borderLeft:`1px solid ${C.bd}`,display:"flex",flexDirection:"column",flexShrink:0,overflow:"hidden"}}>
         <div style={{display:"flex",borderBottom:`1px solid ${C.bd}`}}>
-          {["layers","fx","lut","style","forge","adj","plug","act","exp"].map(t=>(<button key={t} onClick={()=>sRT(t)} style={{flex:1,padding:"3px 0",background:"transparent",border:"none",borderBottom:rT===t?`2px solid ${C.ac}`:"2px solid transparent",color:rT===t?C.ac:C.tm,fontSize:5,cursor:"pointer",fontFamily:FN,textTransform:"uppercase"}}>{t}</button>))}
+          {["layers","fx","lut","style","forge","adj","plug","act","exp"].map(t=>(<button key={t} onClick={()=>sRT(t)} style={{flex:1,padding:"6px 0",background:"transparent",border:"none",borderBottom:rT===t?`2px solid ${C.ac}`:"2px solid transparent",color:rT===t?C.ac:C.tm,fontSize:10,cursor:"pointer",fontWeight:600,fontFamily:FN,textTransform:"uppercase"}}>{t}</button>))}
         </div>
         <div style={{flex:1,overflow:"auto",padding:4}}>
 
@@ -427,7 +427,7 @@ export default function Auralith369(){
               <Bt onClick={()=>setGuides(p=>[...p,{type:"v",pos:Math.round(sz.w/2)}])} sm title="Add vertical guide">│</Bt>
               {guides.length>0&&<Bt onClick={()=>setGuides([])} sm style={{color:C.rd}}>✕ guides</Bt>}
             </div>
-            <input value={layerSearch} onChange={e=>setLayerSearch(e.target.value)} placeholder="Search layers..." style={{width:"100%",padding:"1px 3px",background:C.srf,border:`1px solid ${C.bd}`,borderRadius:2,color:C.tx,fontFamily:FN,fontSize:6.5,marginBottom:2,outline:"none"}}/>
+            <input value={layerSearch} onChange={e=>setLayerSearch(e.target.value)} placeholder="Search layers..." style={{width:"100%",padding:"1px 3px",background:C.srf,border:`1px solid ${C.bd}`,borderRadius:2,color:C.tx,fontFamily:FN,fontSize:11,marginBottom:6,outline:"none"}}/>
             <canvas ref={mnR} style={{width:"100%",display:"block",borderRadius:1,border:`1px solid ${C.bd}`,marginBottom:1}}/>
             <Hist_/>
             {domColors.length>0&&<div style={{display:"flex",gap:1,marginTop:2}}>{domColors.map((c,i)=>(<div key={i} onClick={()=>setFg(c)} style={{width:12,height:12,borderRadius:2,background:c,cursor:"pointer",border:fg===c?`1.5px solid ${C.ac}`:`1px solid ${C.bd}`}} title={c}/>))}</div>}
@@ -436,14 +436,14 @@ export default function Auralith369(){
                 <div style={{display:"flex",alignItems:"center",gap:2}}>
                   <button onClick={e=>{e.stopPropagation();setLayers(p=>p.map(x=>x.id===l.id?{...x,vis:x.vis?0:1}:x));}} style={{background:"none",border:"none",cursor:"pointer",color:l.vis?C.ac:C.tm,fontSize:8,padding:0}}>{l.vis?"👁":"◌"}</button>
                   {l.kind==="adjustment"?<span style={{fontSize:5,color:C.gd}}>☀</span>:(l.mask?<span style={{fontSize:5,color:C.gd}}>🎭</span>:null)}
-                  {aL===l.id?<input value={l.n} onChange={e=>setLayers(p=>p.map(x=>x.id===l.id?{...x,n:e.target.value}:x))} onClick={e=>e.stopPropagation()} style={{flex:1,fontSize:6,color:C.tx,background:"transparent",border:`1px solid ${C.bd}`,borderRadius:1,padding:"0 1px",fontFamily:FN,outline:"none"}}/>:<span style={{flex:1,fontSize:6,color:C.tx,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.n}</span>}
+                  {aL===l.id?<input value={l.n} onChange={e=>setLayers(p=>p.map(x=>x.id===l.id?{...x,n:e.target.value}:x))} onClick={e=>e.stopPropagation()} style={{flex:1,fontSize:10,color:C.tx,background:"transparent",border:`1px solid ${C.bd}`,borderRadius:1,padding:"0 1px",fontFamily:FN,outline:"none"}}/>:<span style={{flex:1,fontSize:10,color:C.tx,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{l.n}</span>}
                   <button onClick={e=>{e.stopPropagation();setLayers(p=>{const i=p.findIndex(x=>x.id===l.id);if(i>=p.length-1)return p;const n=[...p];[n[i],n[i+1]]=[n[i+1],n[i]];return n;});}} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:5}}>▲</button>
                   <button onClick={e=>{e.stopPropagation();setLayers(p=>{const i=p.findIndex(x=>x.id===l.id);if(i<=0)return p;const n=[...p];[n[i],n[i-1]]=[n[i-1],n[i]];return n;});}} style={{background:"none",border:"none",color:C.tm,cursor:"pointer",fontSize:5}}>▼</button>
                   {layers.length>1&&<button onClick={e=>{e.stopPropagation();delL(l.id);}} style={{background:"none",border:"none",color:C.rd,cursor:"pointer",fontSize:7}}>✕</button>}
                 </div>
                 {aL===l.id&&<div style={{marginTop:2}}>
                   <Sl l="Opacity" v={l.op*100} mn={0} mx={100} ch={v=>setLayers(p=>p.map(x=>x.id===l.id?{...x,op:v/100}:x))} u="%"/>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:5.5,color:C.tm}}>Blend</span><select value={l.bl} onChange={e=>setLayers(p=>p.map(x=>x.id===l.id?{...x,bl:e.target.value}:x))}>{BLN.map(m=><option key={m} value={m}>{m}</option>)}</select></div>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><span style={{fontSize:10,color:C.tm}}>Blend</span><select value={l.bl} onChange={e=>setLayers(p=>p.map(x=>x.id===l.id?{...x,bl:e.target.value}:x))}>{BLN.map(m=><option key={m} value={m}>{m}</option>)}</select></div>
                   {l.kind==="adjustment"&&<div style={{marginTop:2,padding:2,background:C.bg,borderRadius:2,border:`1px solid ${C.bd}`}}><div style={{fontSize:5.5,color:C.gd,marginBottom:1}}>Non-destructive Look Layer</div><Sl l="Adj Bright" v={l.adj?.br??100} mn={50} mx={160} ch={v=>setLayers(p=>p.map(x=>x.id===l.id?{...x,adj:{...(x.adj||{}),br:v}}:x))} u="%"/><Sl l="Adj Contrast" v={l.adj?.ct??100} mn={50} mx={180} ch={v=>setLayers(p=>p.map(x=>x.id===l.id?{...x,adj:{...(x.adj||{}),ct:v}}:x))} u="%"/><Sl l="Adj Sat" v={l.adj?.st??100} mn={0} mx={200} ch={v=>setLayers(p=>p.map(x=>x.id===l.id?{...x,adj:{...(x.adj||{}),st:v}}:x))} u="%"/><Sl l="Vignette" v={Math.round((l.adj?.vignette??0)*100)} mn={0} mx={85} ch={v=>setLayers(p=>p.map(x=>x.id===l.id?{...x,adj:{...(x.adj||{}),vignette:v/100}}:x))} u="%" c={C.gd}/></div>}
                   <Sl l="BI Lo" v={l.biLo} mn={0} mx={255} ch={v=>setLayers(p=>p.map(x=>x.id===l.id?{...x,biLo:v}:x))} c={C.gd}/>
                   <Sl l="BI Hi" v={l.biHi} mn={0} mx={255} ch={v=>setLayers(p=>p.map(x=>x.id===l.id?{...x,biHi:v}:x))} c={C.gd}/>

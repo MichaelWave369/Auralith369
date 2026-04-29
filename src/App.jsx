@@ -4,7 +4,7 @@ import ErrorBoundary from './ErrorBoundary';
 
 export default function App() {
   return (
-    <>
+    <div className="auralith-app-shell">
       <div
         style={{
           position: 'fixed',
@@ -25,6 +25,6 @@ export default function App() {
       <ErrorBoundary>
         <Auralith369 />
       </ErrorBoundary>
-    </>
+    </div>
   );
 }

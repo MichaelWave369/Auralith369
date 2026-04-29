@@ -152,7 +152,7 @@ export default function Auralith369(){
   const[rulerStart,setRulerStart]=useState(null);const[rulerEnd,setRulerEnd]=useState(null);
   const[batchRec,setBatchRec]=useState(0);const[batchActions,setBatchActions]=useState([]);const[savedBatches,setSavedBatches]=useState([]);
   const[domColors,setDomColors]=useState([]);
-  const[projectName,setProjectName]=useState("phi-photo-project");
+  const[projectName,setProjectName]=useState("auralith-project");
   const[posterTitle,setPosterTitle]=useState("PHI369");
   const[posterSub,setPosterSub]=useState("Sovereign image alchemy");
   const[lastReceipt,setLastReceipt]=useState(null);
@@ -341,7 +341,7 @@ export default function Auralith369(){
   const filteredLayers=layerSearch?layers.filter(l=>l.n.toLowerCase().includes(layerSearch.toLowerCase())):layers;
   const Hist_=()=>{if(!histD)return null;const mx=Math.max(...histD.r,...histD.g,...histD.b,1);return(<div style={{height:22,background:C.srf,borderRadius:1,overflow:"hidden",marginTop:1}}><svg width="100%" height="22" viewBox="0 0 256 22" preserveAspectRatio="none">{[{d:histD.r,c:"#ef444450"},{d:histD.g,c:"#10b98150"},{d:histD.b,c:"#3b82f650"}].map(({d,c},i)=>(<path key={i} d={`M0,22 ${d.map((v,j)=>`L${j},${22-v/mx*20}`).join(" ")} L255,22Z`} fill={c}/>))}</svg></div>);};
 
-  return(<div style={{width:"100%",height:"100vh",display:"flex",flexDirection:"column",background:C.bg,color:C.tx,fontFamily:FN,fontSize:8,overflow:"hidden",userSelect:"none"}}
+  return(<div className="auralith-editor-root" style={{width:"100%",height:"100%",display:"flex",flexDirection:"column",background:C.bg,color:C.tx,fontFamily:FN,fontSize:11,lineHeight:1.35,overflow:"hidden",userSelect:"none",zoom:1.35}}
     onDrop={e=>{e.preventDefault();setDrOv(0);if(e.dataTransfer.files[0])openAsset(e.dataTransfer.files[0]);}} onDragOver={e=>{e.preventDefault();setDrOv(1);}} onDragLeave={()=>setDrOv(0)}>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <style>{`input[type="range"]::-webkit-slider-thumb{appearance:none;width:6px;height:6px;background:${C.ac};border-radius:50%;cursor:pointer;border:1px solid ${C.bg}}::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:${C.bg}}::-webkit-scrollbar-thumb{background:${C.bd};border-radius:2px}select{background:${C.srf};color:${C.tx};border:1px solid ${C.bd};border-radius:2px;padding:1px 2px;font-family:${FN};font-size:6.5px;outline:none}`}</style>
@@ -378,7 +378,7 @@ export default function Auralith369(){
 
     <div style={{display:"flex",flex:1,overflow:"hidden"}}>
       {/* LEFT */}
-      <div style={{width:34,background:C.pn,borderRight:`1px solid ${C.bd}`,display:"flex",flexDirection:"column",alignItems:"center",padding:"2px 0",gap:0,flexShrink:0,overflow:"auto"}}>
+      <div style={{width:44,background:C.pn,borderRight:`1px solid ${C.bd}`,display:"flex",flexDirection:"column",alignItems:"center",padding:"2px 0",gap:0,flexShrink:0,overflow:"auto"}}>
         {TLS.map(t=>(<button key={t.id} title={`${t.n} (${t.k})`} onClick={()=>setTl(t.id)} style={{width:28,height:20,display:"flex",alignItems:"center",justifyContent:"center",background:tl===t.id?C.sa:"transparent",border:tl===t.id?`1px solid ${C.ac}22`:"1px solid transparent",borderRadius:2,cursor:"pointer",fontSize:10,color:tl===t.id?C.ac:C.td,flexShrink:0}}>{t.ic}</button>))}
         <div style={{flex:1}}/>
         <div style={{position:"relative",width:20,height:20,margin:"2px 0"}}><div style={{position:"absolute",top:0,left:0,width:13,height:13,borderRadius:2,background:fg,border:`1px solid ${C.bd}`,zIndex:2,cursor:"pointer"}} onClick={()=>document.getElementById("fg7")?.click()}/><div style={{position:"absolute",bottom:0,right:0,width:13,height:13,borderRadius:2,background:bg_,border:`1px solid ${C.bd}`,cursor:"pointer"}} onClick={()=>document.getElementById("bg7")?.click()}/><input id="fg7" type="color" value={fg} onChange={e=>setFg(e.target.value)} style={{position:"absolute",opacity:0,width:0}}/><input id="bg7" type="color" value={bg_} onChange={e=>setBgC(e.target.value)} style={{position:"absolute",opacity:0,width:0}}/></div>
@@ -415,7 +415,7 @@ export default function Auralith369(){
       </div>
 
       {/* RIGHT */}
-      <div style={{width:192,background:C.pn,borderLeft:`1px solid ${C.bd}`,display:"flex",flexDirection:"column",flexShrink:0,overflow:"hidden"}}>
+      <div style={{width:280,background:C.pn,borderLeft:`1px solid ${C.bd}`,display:"flex",flexDirection:"column",flexShrink:0,overflow:"hidden"}}>
         <div style={{display:"flex",borderBottom:`1px solid ${C.bd}`}}>
           {["layers","fx","lut","style","forge","adj","plug","act","exp"].map(t=>(<button key={t} onClick={()=>sRT(t)} style={{flex:1,padding:"3px 0",background:"transparent",border:"none",borderBottom:rT===t?`2px solid ${C.ac}`:"2px solid transparent",color:rT===t?C.ac:C.tm,fontSize:5,cursor:"pointer",fontFamily:FN,textTransform:"uppercase"}}>{t}</button>))}
         </div>

@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.1.0-alpha
+- Hardened Pages workflow for first-time GitHub Pages enablement.
 - Configured Vite base path for /Auralith369/.
 - Added GitHub Pages deployment workflow for online demo hosting.
 - Fixed CI setup-node lockfile/cache behavior before package-lock.json exists.

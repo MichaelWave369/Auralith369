@@ -55,3 +55,20 @@ MIT (`LICENSE`). No warranty.
 
 ## Attribution
 Auralith369 is built by **PHI369 Labs**.
+
+## Quality Checks
+
+```bash
+npm install
+npm test
+npm run build
+npm run dev
+```
+
+## Online Demo
+
+Once GitHub Pages is enabled for this repository, Auralith369 will be available at:
+
+https://michaelwave369.github.io/Auralith369/
+
+If the page is not live yet, enable GitHub Pages under repository Settings → Pages and set Source to GitHub Actions.

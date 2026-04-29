@@ -1,6 +1,8 @@
 # Changelog
 
 ## 0.1.0-alpha
+- Configured Vite base path for /Auralith369/.
+- Added GitHub Pages deployment workflow for online demo hosting.
 - Fixed CI setup-node lockfile/cache behavior before package-lock.json exists.
 - Added package/build hygiene for public alpha release readiness.
 - Added GitHub Actions CI for test and build validation.

@@ -1,0 +1,12 @@
+:root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; }
+body { margin: 0; background: #120c1f; color: #f7f0ff; }
+.auralith-shell { padding: 1rem; }
+.grid { display: grid; grid-template-columns: 260px 1fr 260px; gap: 1rem; }
+.panel, .canvas-panel { background: #1c1230; border: 1px solid #39225f; border-radius: 10px; padding: 1rem; }
+input, select, button { width: 100%; margin: 0.3rem 0 0.75rem; background: #2a1946; color: #fff; border: 1px solid #4d3280; border-radius: 6px; padding: 0.45rem; }
+button { cursor: pointer; }
+.actions { display: grid; gap: 0.5rem; }
+.layer { border: 1px solid #4d3280; padding: 0.5rem; border-radius: 6px; margin-top: 0.5rem; cursor: pointer; }
+.layer.active { border-color: #b88dff; }
+canvas { width: 100%; border-radius: 8px; border: 1px solid #4d3280; background: #000; }
+@media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } }

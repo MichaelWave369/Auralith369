@@ -1,6 +1,8 @@
 # Changelog
 
 ## 0.1.0-alpha
+- Fixed README image paths for GitHub rendering.
+- Added Auralith369 logo and infographic poster to the README.
 - Public alpha launch.
 - Live GitHub Pages demo.
 - Canonical Auralith369 editor merge.

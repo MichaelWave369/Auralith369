@@ -1,6 +1,22 @@
-# Auralith369
+<p align="center">
+  <img src="./auralith369-logo.png" alt="Auralith369 logo" width="420" />
+</p>
 
-**Local-first visual alchemy.**
+[View logo](./auralith369-logo.png)
+
+<h1 align="center">Auralith369</h1>
+
+<p align="center">
+  <strong>Local-first visual alchemy.</strong>
+</p>
+
+<p align="center">
+  <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
+  ·
+  <a href="RELEASE_NOTES_v0.1.0-alpha.md">Release Notes</a>
+  ·
+  <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
+</p>
 
 Auralith369 is a public-alpha creative workstation by PHI369 Labs for image editing, poster forging, style cards, manifests, and auditable creative receipts.
 
@@ -54,6 +70,16 @@ See docs:
 
 ## Screenshots
 Screenshots coming soon.
+
+## Visual Overview
+
+<p align="center">
+  <img src="./auralith369-infographic-poster.png" alt="Auralith369 feature overview infographic" width="760" />
+</p>
+
+[View infographic poster](./auralith369-infographic-poster.png)
+
+The infographic summarizes the alpha feature set, project format, validation flow, deployment status, and next planned evolutions.
 
 ## Roadmap
 See `ROADMAP.md`.

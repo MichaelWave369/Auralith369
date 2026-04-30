@@ -1,6 +1,20 @@
-# Auralith369
+<p align="center">
+  <img src="auralith369-logo.png" alt="Auralith369 logo" width="420" />
+</p>
 
-**Local-first visual alchemy.**
+<h1 align="center">Auralith369</h1>
+
+<p align="center">
+  <strong>Local-first visual alchemy.</strong>
+</p>
+
+<p align="center">
+  <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
+  ·
+  <a href="RELEASE_NOTES_v0.1.0-alpha.md">Release Notes</a>
+  ·
+  <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
+</p>
 
 Auralith369 is a public-alpha creative workstation by PHI369 Labs for image editing, poster forging, style cards, manifests, and auditable creative receipts.
 
@@ -33,6 +47,14 @@ npm run build
 npm run preview
 ```
 
+## Install / Dev / Test / Build
+```bash
+npm install
+npm run dev
+npm test
+npm run build
+```
+
 ## File Formats
 - Project: `.auralith`
 - Receipt: `.auralith-receipt.json`
@@ -47,6 +69,14 @@ See docs:
 ## Screenshots
 Screenshots coming soon.
 
+## Visual Overview
+
+<p align="center">
+  <img src="auralith369-infographic-poster.png" alt="Auralith369 feature overview infographic" width="760" />
+</p>
+
+The infographic summarizes the alpha feature set, project format, validation flow, deployment status, and next planned evolutions.
+
 ## Roadmap
 See `ROADMAP.md`.
 
@@ -55,3 +85,26 @@ MIT (`LICENSE`). No warranty.
 
 ## Attribution
 Auralith369 is built by **PHI369 Labs**.
+
+## Quality Checks
+
+- Smoke check: if the app shows an **Auralith369 runtime error** panel, open browser console and report the displayed error.
+
+```bash
+npm install
+npm test
+npm run build
+npm run dev
+```
+
+## Online Demo
+
+Once GitHub Pages is enabled for this repository, Auralith369 will be available at:
+
+https://michaelwave369.github.io/Auralith369/
+
+If the page is not live yet, enable GitHub Pages under repository Settings → Pages and set Source to GitHub Actions.
+
+If the online demo shows only a blank background, open DevTools Console and report any message from:
+- Auralith369 failed to boot
+- Auralith369 runtime error

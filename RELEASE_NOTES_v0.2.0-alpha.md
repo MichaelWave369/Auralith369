@@ -12,5 +12,5 @@
 ## Stability
 
 - Existing Canvas 2D tests, project round trips, recovery, edge tools, and performance gates remain release requirements.
-- Browser smoke coverage now opens the GPU panel and exercises either a live preview or the explicit fallback path.
+- Browser smoke coverage exercises a live GPU preview only when the capability control is enabled, and otherwise verifies the explicit fallback path.
 - Numeric UI flags are boolean-coerced so inactive controls cannot leak visible `0` characters into the workstation.

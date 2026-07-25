@@ -150,3 +150,40 @@ test('edge tools remain operational at all four canvas borders', async ({ page }
   await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+
+test('recovers an unsaved local session after reload', async ({ page }) => {
+  await page.goto('./');
+  await drawStroke(page);
+  await expect(page.getByTestId('recovery-state')).toContainText('Recovery saved', { timeout: 12_000 });
+
+  await page.reload();
+  await expect(page.getByRole('dialog', { name: 'Recover unsaved session' })).toBeVisible();
+  await page.getByRole('button', { name: 'Recover Session' }).click();
+  await expect(page.getByText('Session recovered', { exact: true })).toBeVisible();
+  await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
+});
+
+test('Canvas 2D compositor stays inside 1080p and 4K budgets', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'Performance budgets use the Chromium CI reference engine.');
+  test.setTimeout(90_000);
+  await page.goto('./');
+
+  const measureAt = async (width, height, iterations) => {
+    await page.getByRole('button', { name: 'Rsz', exact: true }).click();
+    const inputs = page.locator('input[type="number"]');
+    await inputs.nth(0).fill(String(width));
+    await inputs.nth(1).fill(String(height));
+    await page.getByRole('button', { name: 'Apply', exact: true }).click();
+    await expect(page.locator('.auralith-editor-root canvas').first()).toHaveAttribute('width', String(width));
+    return page.evaluate(count => window.__AURALITH_DIAGNOSTICS__.measureComposite(count), iterations);
+  };
+
+  const hd = await measureAt(1920, 1080, 3);
+  expect(hd.averageMs).toBeLessThanOrEqual(500);
+  expect(hd.maxMs).toBeLessThanOrEqual(750);
+
+  const fourK = await measureAt(3840, 2160, 2);
+  expect(fourK.averageMs).toBeLessThanOrEqual(2000);
+  expect(fourK.maxMs).toBeLessThanOrEqual(3000);
+});

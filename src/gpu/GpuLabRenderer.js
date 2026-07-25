@@ -246,7 +246,6 @@ export class GpuLabRenderer {
     this.material.dispose();
     this.geometry.dispose();
     this.renderer.dispose();
-    this.renderer.forceContextLoss();
     this.texture = null;
     this.lastSource = null;
   }

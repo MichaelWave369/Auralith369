@@ -220,3 +220,32 @@ test('GPU Lab exposes a live WebGL2 preview or a clean fallback', async ({ page,
   await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+
+test('GPU Cartridge Bay loads, saves, persists, and exports presets', async ({ page }) => {
+  const errors = collectPageErrors(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: 'gpu', exact: true }).click();
+  await expect(page.getByText(/GPU Lab v0\.2/).first()).toBeVisible();
+
+  const select = page.getByTestId('gpu-preset-select');
+  await select.selectOption('builtin:cathedral-resonance');
+  await expect(page.getByTestId('gpu-active-preset')).toContainText('Cathedral Resonance');
+
+  page.once('dialog', dialog => dialog.accept('CI Cathedral'));
+  await page.getByRole('button', { name: 'Save As', exact: true }).click();
+  await expect(page.getByTestId('gpu-active-preset')).toContainText('CI Cathedral');
+  await expect(select.locator('option', { hasText: 'CI Cathedral' })).toHaveCount(1);
+
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export Cart', exact: true }).click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/\.auralith-gpu\.json$/);
+
+  await page.getByRole('button', { name: 'Bypass GPU', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Resume GPU', exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'gpu', exact: true }).click();
+  await expect(page.getByTestId('gpu-preset-select').locator('option', { hasText: 'CI Cathedral' })).toHaveCount(1);
+  expect(errors).toEqual([]);
+});

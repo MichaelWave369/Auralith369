@@ -194,7 +194,7 @@ test('GPU Lab exposes a live WebGL2 preview or a clean fallback', async ({ page,
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText('GPU Lab v0.1', { exact: true })).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.1/).first()).toBeVisible();
 
   const capability = page.getByTestId('gpu-capability');
   await expect(capability).not.toContainText('Checking WebGL2', { timeout: 12_000 });

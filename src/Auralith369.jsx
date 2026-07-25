@@ -1,4 +1,4 @@
-// Auralith369 v0.1.0-alpha — local-first visual alchemy by PHI369 Labs
+// Auralith369 v0.2.0-alpha — local-first visual alchemy by PHI369 Labs
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
@@ -383,7 +383,7 @@ export default function Auralith369(){
       <div style={{width:1,height:11,background:C.bd}}/>
       <Bt onClick={()=>sShowR(1)} sm>Rsz</Bt><Bt onClick={()=>flipA("h")} sm>↔</Bt><Bt onClick={()=>flipA("v")} sm>↕</Bt><Bt onClick={()=>rotA(90)} sm>↻</Bt><Bt onClick={mergeV} sm>⊟</Bt>
       <Bt onClick={()=>setSplitV(v=>v?0:1)} sm a={splitV}>⫿</Bt><Bt onClick={()=>setSnapOn(v=>v?0:1)} sm a={snapOn} title="Snap to guides, Φ, center, and 369 grid">Snap</Bt>
-      {splitV&&<input type="range" min={5} max={95} value={splitP} onChange={e=>setSplitP(+e.target.value)} style={{width:30,height:2,appearance:"none",background:C.srf,outline:"none"}}/>}
+      {Boolean(splitV)&&<input type="range" min={5} max={95} value={splitP} onChange={e=>setSplitP(+e.target.value)} style={{width:30,height:2,appearance:"none",background:C.srf,outline:"none"}}/>}
       {crR&&<Bt onClick={applyCrop} sm style={{color:C.ac}}>✓Crop</Bt>}
       {sel&&<><Bt onClick={selCp} sm>Cp</Bt><Bt onClick={selCut} sm>Cut</Bt><Bt onClick={selPst} sm>Pst</Bt><Bt onClick={selDel} sm style={{color:C.rd}}>Del</Bt><Bt onClick={selFl} sm>Fill</Bt><Bt onClick={doCAFill} sm style={{color:C.gd}}>✨CA</Bt><Bt onClick={()=>sSel(null)} sm>Des</Bt></>}
       {penP.length>1&&<Bt onClick={strokePen} sm style={{color:C.ac}}>✓Path</Bt>}
@@ -415,7 +415,7 @@ export default function Auralith369(){
             <input type="range" min={1} max={150} value={bSz} onChange={e=>setBSz(+e.target.value)} style={{width:35,height:2,appearance:"none",background:C.srf,outline:"none"}}/><span style={{color:C.ac,fontSize:5.5}}>{bSz}</span>
             <input type="range" min={1} max={100} value={bOp*100} onChange={e=>setBOp(e.target.value/100)} style={{width:25,height:2,appearance:"none",background:C.srf,outline:"none"}}/><span style={{color:C.ac,fontSize:5.5}}>{Math.round(bOp*100)}%</span>
             <select value={symM} onChange={e=>setSymM(+e.target.value)} style={{fontSize:5.5}}>{SYM.map(m=><option key={m.v} value={m.v}>{m.n}</option>)}</select>
-            {eMask&&<span style={{fontSize:5.5,color:C.gd,fontWeight:700}}>MASK</span>}
+            {Boolean(eMask)&&<span style={{fontSize:5.5,color:C.gd,fontWeight:700}}>MASK</span>}
           </>}
           {tl==="heal"&&<><span style={{fontSize:6,color:C.td}}>Spot Heal</span><input type="range" min={4} max={60} value={bSz} onChange={e=>setBSz(+e.target.value)} style={{width:35,height:2,appearance:"none",background:C.srf,outline:"none"}}/><span style={{color:C.ac,fontSize:5.5}}>{bSz}px</span></>}
           {tl==="text"&&<><input value={txt} onChange={e=>sTxt(e.target.value)} style={{background:C.srf,border:`1px solid ${C.bd}`,borderRadius:1,padding:"0 2px",color:C.tx,fontFamily:FN,fontSize:6.5,width:70}}/><input type="number" value={tSz} onChange={e=>sTSz(+e.target.value)} min={8} max={300} style={{width:24,background:C.srf,border:`1px solid ${C.bd}`,borderRadius:1,color:C.tx,fontFamily:FN,fontSize:5.5}}/><Bt a={plc} onClick={()=>sPlc(!plc)} sm>{plc?"Click →":"Place"}</Bt><Bt a={txtFx.stroke} onClick={()=>setTxtFx(p=>({...p,stroke:p.stroke?0:1}))} sm>Stroke</Bt><Bt a={txtFx.shadow} onClick={()=>setTxtFx(p=>({...p,shadow:p.shadow?0:1}))} sm>Shadow</Bt><Bt a={txtFx.gradient} onClick={()=>setTxtFx(p=>({...p,gradient:p.gradient?0:1}))} sm>Gradient</Bt></>}

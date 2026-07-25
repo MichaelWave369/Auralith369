@@ -1,5 +1,8 @@
-
-:root { color-scheme: dark; font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: #050910;
+}
 
 html,
 body,
@@ -14,7 +17,10 @@ body,
 }
 
 body {
-  background: #050910;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(139, 92, 246, 0.1), transparent 34rem),
+    radial-gradient(circle at 88% 92%, rgba(6, 182, 212, 0.08), transparent 38rem),
+    #050910;
   color: #e2e8f0;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -28,21 +34,107 @@ textarea {
   font: inherit;
 }
 
+button,
+select,
+input {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 1px;
+}
+
 .auralith-app-shell {
+  position: relative;
+  isolation: isolate;
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
+  overflow: auto;
   background: #050910;
   color: #e2e8f0;
 }
 
+.auralith-app-shell::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+  opacity: 0.055;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(255, 255, 255, 0.18) 3px,
+    transparent 4px
+  );
+  mix-blend-mode: screen;
+}
+
 .auralith-editor-root {
   width: 100%;
+  min-width: 900px;
   height: 100%;
+  min-height: 640px;
+}
+
+/* Replace the temporary Φ tile with the new Auralith369 mark. */
+.auralith-editor-root > div:first-child > div:first-child > div:first-child {
+  width: 28px !important;
+  height: 28px !important;
+  border: 1px solid rgba(125, 211, 252, 0.38) !important;
+  border-radius: 5px !important;
+  color: transparent !important;
+  text-indent: -9999px;
+  overflow: hidden;
+  background-color: #080d1a !important;
+  background-image: url('./assets/auralith369-mark.webp') !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: cover !important;
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.16),
+    inset 0 -1px rgba(0, 0, 0, 0.7),
+    0 0 14px rgba(139, 92, 246, 0.2);
+}
+
+/* A restrained 16-bit workstation feel: beveled controls, not a costume. */
+.auralith-editor-root button,
+.auralith-editor-root select,
+.auralith-editor-root input:not([type='range']):not([type='color']) {
+  box-shadow:
+    inset 0 1px rgba(255, 255, 255, 0.075),
+    inset 0 -1px rgba(0, 0, 0, 0.48);
+}
+
+.auralith-editor-root button:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px rgba(0, 0, 0, 0.48),
+    inset 0 -1px rgba(255, 255, 255, 0.045);
 }
 
 @media (max-width: 1100px) {
+  body {
+    overflow: auto;
+  }
+
   .auralith-app-shell {
     overflow: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }

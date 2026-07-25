@@ -1,13 +1,5 @@
 <p align="center">
-  <img src="./auralith369-logo.png" alt="Auralith369 logo" width="420" />
-</p>
-
-[View logo](./auralith369-logo.png)
-
-<h1 align="center">Auralith369</h1>
-
-<p align="center">
-  <strong>Local-first visual alchemy.</strong>
+  <img src="./public/auralith369-brand-banner.webp" alt="Auralith369 — local-first visual alchemy" width="900" />
 </p>
 
 <p align="center">
@@ -18,9 +10,13 @@
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
 
+# Auralith369
+
+**Local-first visual alchemy. Create locally. Prove the process.**
+
 Auralith369 is a public-alpha creative workstation by PHI369 Labs for image editing, poster forging, style cards, manifests, and auditable creative receipts.
 
-> ⚠️ **Alpha status:** This is alpha software. Auralith369 runs locally in your browser. Avoid opening untrusted `.auralith` project files until import validation is hardened. No warranty; MIT licensed.
+> ⚠️ **Alpha status:** This is alpha software. Auralith369 runs locally in your browser. Avoid opening untrusted `.auralith` project files until import validation is fully hardened. No warranty; MIT licensed.
 
 ## Features (Public Alpha)
 - Canvas editor with local rendering
@@ -34,6 +30,17 @@ Auralith369 is a public-alpha creative workstation by PHI369 Labs for image edit
 - Auralith Receipt export (`.auralith-receipt.json`)
 - Auralith Manifest export (`.auralith-manifest.md`)
 - Version snapshots and social pack export oriented pipeline
+
+## Current Stability Pass
+
+The current branch includes a focused runtime and file-integrity pass:
+
+- Restores the overlay registry used by the editor UI
+- Makes files exported by Auralith369 valid inputs for its own importer
+- Preserves exported canvas size, title, layer aliases, overlay, and snap state
+- Restricts embedded project imagery to bounded base64 PNG, JPEG, or WebP data URLs
+- Adds regression tests for runtime overlays and project round trips
+- Integrates the new Auralith369 mark, favicon, social banner, and emulator-inspired interface polish
 
 ## Local Setup
 ```bash
@@ -68,8 +75,17 @@ See docs:
 - `docs/MANIFESTS.md`
 - `docs/STYLE_CARDS.md`
 
+## Visual Identity
+
+<p align="center">
+  <img src="./public/auralith369-icon-96.png" alt="Auralith369 application mark" width="96" />
+</p>
+
+The new mark is used in the application chrome and browser favicon. The shell intentionally borrows the compact, tactile workstation energy of classic SNES-era emulator interfaces while keeping Auralith369’s own visual identity.
+
 ## Screenshots
-Screenshots coming soon.
+
+Full workflow screenshots are the next documentation pass. The live demo is the current interactive reference.
 
 ## Visual Overview
 
@@ -103,11 +119,9 @@ npm run dev
 
 ## Online Demo
 
-Once GitHub Pages is enabled for this repository, Auralith369 will be available at:
+Auralith369 is deployed with GitHub Pages at:
 
 https://michaelwave369.github.io/Auralith369/
-
-If the page is not live yet, enable GitHub Pages under repository Settings → Pages and set Source to GitHub Actions.
 
 If the online demo shows only a blank background, open DevTools Console and report any message from:
 - Auralith369 failed to boot

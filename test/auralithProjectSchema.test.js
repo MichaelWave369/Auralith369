@@ -29,6 +29,8 @@ function makeValidProject(overrides = {}) {
   };
 }
 
+const tinyPng = 'data:image/png;base64,AAAA';
+
 test('A. minimal valid project passes and normalizes', () => {
   const project = makeValidProject();
   const result = validateAuralithProject(project);
@@ -74,7 +76,7 @@ test('D. invalid image data URL is rejected', () => {
     makeValidProject({ image: 'javascript:alert(1)' })
   );
   assert.equal(result.ok, false);
-  assert.match(result.errors.join(' '), /data:image\//i);
+  assert.match(result.errors.join(' '), /base64 PNG, JPEG, or WebP/i);
 });
 
 test('E. oversized data URL is rejected', () => {
@@ -121,7 +123,7 @@ test('I. normalization applies safe defaults', () => {
   });
 
   assert.equal(normalized.tool, 'brush');
-  assert.equal(normalized.overlay, 'phi-grid');
+  assert.equal(normalized.overlay, 'none');
   assert.equal(normalized.snap, true);
   assert.equal(normalized.caption, 'Local-first visual alchemy');
   assert.equal(normalized.layers[0].visible, true);
@@ -140,4 +142,40 @@ test('J. validation result shape is stable', () => {
   assert.equal(typeof invalid.ok, 'boolean');
   assert.equal(Array.isArray(invalid.errors), true);
   assert.equal(Array.isArray(invalid.warnings), true);
+});
+
+test('K. the editor export format validates and normalizes for round-trip loading', () => {
+  const exported = {
+    kind: 'auralith.project',
+    version: 'v0.1.0-alpha',
+    name: 'round-trip',
+    size: { w: 1024, h: 680 },
+    activeLayer: 1,
+    nextId: 2,
+    layers: [{ id: 1, n: 'Background', vis: 1, op: 1, bl: 'normal', mask: 0 }],
+    layerData: { 1: tinyPng },
+    maskData: {},
+    orig: tinyPng,
+    overlay: { id: 'phi', opacity: 0.5 },
+    snap: { enabled: false, tolerance: 9 }
+  };
+
+  const result = validateAuralithProject(exported);
+  assert.equal(result.ok, true, result.errors.join(' | '));
+  assert.equal(result.project.title, 'round-trip');
+  assert.deepEqual(result.project.canvas, { width: 1024, height: 680 });
+  assert.equal(result.project.overlay, 'phi');
+  assert.equal(result.project.snap, false);
+  assert.equal(result.project.layers[0].name, 'Background');
+  assert.equal(result.project.layers[0].blendMode, 'normal');
+});
+
+test('L. remote or executable embedded layer sources are rejected', () => {
+  const remote = validateAuralithProject(makeValidProject({ layerData: { 'layer-1': 'https://example.com/pixel.png' } }));
+  const svg = validateAuralithProject(makeValidProject({ layerData: { 'layer-1': 'data:image/svg+xml;base64,PHN2Zz4=' } }));
+
+  assert.equal(remote.ok, false);
+  assert.equal(svg.ok, false);
+  assert.match(remote.errors.join(' '), /base64 PNG, JPEG, or WebP/i);
+  assert.match(svg.errors.join(' '), /base64 PNG, JPEG, or WebP/i);
 });

@@ -1,4 +1,4 @@
-// Auralith369 v0.5.0-alpha — local-first visual alchemy by PHI369 Labs
+// Auralith369 v0.6.0-alpha — local-first visual alchemy by PHI369 Labs
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
@@ -11,7 +11,7 @@ import { GPU_LAB_DEFAULTS, normalizeGpuLabProjectState, normalizeGpuLabSettings 
 import { GPU_LAB_BUILTIN_PRESETS, createCustomGpuPreset, findGpuPreset, parseGpuPresetText, serializeGpuPreset, updateCustomGpuPreset } from "./gpu/gpuLabPresets.js";
 import { loadCustomGpuPresets, loadGpuFavoriteIds, saveCustomGpuPresets, saveGpuFavoriteIds } from "./gpu/gpuPresetStorage.js";
 
-const APP_VERSION="v0.5.0-alpha";
+const APP_VERSION="v0.6.0-alpha";
 const PHI=1.618033988749895,LAM=0.618033988749895;
 const C={bg:"#050910",pn:"#090e1b",pa:"#0b1120",bd:"#121a2f",srf:"#0d142c",sh:"#121b3a",sa:"#172249",ac:"#00d4aa",ad:"#00a88622",ag:"#00d4aa10",gd:"#d4a017",pr:"#8b5cf6",rd:"#ef4444",bl:"#3b82f6",gn:"#10b981",cy:"#06b6d4",pk:"#ec4899",or:"#f97316",tx:"#e2e8f0",td:"#7085a8",tm:"#3a4c66",wh:"#fff",bk:"#000"};
 const FN="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace";
@@ -563,7 +563,7 @@ export default function Auralith369(){
           </>}
 
           {rT==="gpu"&&<>
-            <Hd ic="◈">GPU Lab v0.4</Hd>
+            <Hd ic="◈">GPU Lab v0.5</Hd>
             <Hd ic="▣">Cartridge Bay</Hd>
             <select data-testid="gpu-preset-select" value={activeGpuPresetId} onChange={e=>applyGpuPresetById(e.target.value)} style={{width:"100%",marginBottom:2,fontSize:6.5}}>
               <option value="">Custom / unsaved signal</option>
@@ -619,6 +619,21 @@ export default function Auralith369(){
               <Sl l="Kaleidoscope" v={gpuSettings.feedback.kaleidoscope} mn={0} mx={12} s={1} ch={value=>setGpuValue("feedback","kaleidoscope",value)} u={gpuSettings.feedback.kaleidoscope?"×":" Off"} c={C.or}/>
               <div style={{fontSize:5.5,color:C.tm,lineHeight:1.45,marginBottom:3}}>True ping-pong frame recursion at a bounded 30 FPS. Clear Frame resets both local GPU buffers without touching Canvas 2D artwork.</div>
             </div>
+            <div data-testid="gpu-spectral-forge">
+              <Hd ic="◇">Prism Drift / Spectral Forge</Hd>
+              <Bt a={gpuSettings.spectral.enabled} onClick={()=>setGpuValue("spectral","enabled",!gpuSettings.spectral.enabled)} sm>{gpuSettings.spectral.enabled?"Spectral On":"Spectral Off"}</Bt>
+              <Sl l="Hue Drift" v={gpuSettings.spectral.hueShift} mn={-180} mx={180} s={1} ch={value=>setGpuValue("spectral","hueShift",value)} u="°" c={C.pr}/>
+              <Sl l="Saturation" v={gpuSettings.spectral.saturation*100} mn={0} mx={250} ch={value=>setGpuValue("spectral","saturation",value/100)} u="%" c={C.pk}/>
+              <Sl l="Prism Dispersion" v={gpuSettings.spectral.prismAmount} mn={0} mx={24} s={.5} ch={value=>setGpuValue("spectral","prismAmount",value)} u="px" c={C.cy}/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:2,marginBottom:2}}>
+                <label style={{fontSize:6,color:C.td}}>Shadow Tint<input data-testid="gpu-shadow-tint" type="color" value={gpuSettings.spectral.shadowTint} onChange={e=>setGpuValue("spectral","shadowTint",e.target.value)} style={{display:"block",width:"100%",height:20,marginTop:1,background:C.srf,border:`1px solid ${C.bd}`}}/></label>
+                <label style={{fontSize:6,color:C.td}}>Highlight Tint<input data-testid="gpu-highlight-tint" type="color" value={gpuSettings.spectral.highlightTint} onChange={e=>setGpuValue("spectral","highlightTint",e.target.value)} style={{display:"block",width:"100%",height:20,marginTop:1,background:C.srf,border:`1px solid ${C.bd}`}}/></label>
+              </div>
+              <Sl l="Tint Strength" v={gpuSettings.spectral.tintStrength*100} mn={0} mx={100} ch={value=>setGpuValue("spectral","tintStrength",value/100)} u="%" c={C.gd}/>
+              <Sl l="Solarize" v={gpuSettings.spectral.solarize*100} mn={0} mx={100} ch={value=>setGpuValue("spectral","solarize",value/100)} u="%" c={C.or}/>
+              <label style={{fontSize:6,color:C.td}}>Channel Map<select data-testid="gpu-channel-map" value={gpuSettings.spectral.channelMap} onChange={e=>setGpuValue("spectral","channelMap",e.target.value)} style={{display:"block",width:"100%",marginTop:1,marginBottom:2}}>{[["rgb","RGB"],["rbg","RBG"],["grb","GRB"],["gbr","GBR"],["brg","BRG"],["bgr","BGR"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+              <div style={{fontSize:5.5,color:C.tm,lineHeight:1.45,marginBottom:3}}>Radial prism sampling and color transforms remain parameterized. Original Canvas 2D pixels are never rewritten.</div>
+            </div>
             <Hd ic="✦">Aura Bloom</Hd>
             <Bt a={gpuSettings.bloom.enabled} onClick={()=>setGpuValue("bloom","enabled",!gpuSettings.bloom.enabled)} sm>{gpuSettings.bloom.enabled?"Bloom On":"Bloom Off"}</Bt>
             <Sl l="Strength" v={gpuSettings.bloom.strength*100} mn={0} mx={250} ch={value=>setGpuValue("bloom","strength",value/100)} u="%" c={C.pr}/>
@@ -668,7 +683,7 @@ export default function Auralith369(){
     {recoveryCandidate?<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.78)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1200}}><div role="dialog" aria-label="Recover unsaved session" style={{background:C.pn,border:`1px solid ${C.pr}`,borderRadius:8,padding:16,width:360,boxShadow:`0 18px 50px ${C.bk}`}}><div style={{fontSize:12,fontWeight:700,color:C.tx,marginBottom:5}}>Recover unsaved session?</div><div style={{fontSize:8,color:C.td,lineHeight:1.6,marginBottom:10}}>Auralith found a local recovery snapshot from {new Date(recoveryCandidate.savedAt).toLocaleString()}. Restore it or discard it to begin fresh.</div><div style={{display:"flex",gap:6,justifyContent:"flex-end"}}><Bt onClick={discardRecovery} sm>Discard</Bt><button onClick={restoreRecovery} style={{padding:"4px 9px",background:C.ac,color:C.bg,border:"none",borderRadius:3,fontWeight:700,fontFamily:FN,fontSize:7,cursor:"pointer"}}>Recover Session</button></div></div></div>:null}
 
     {showK?<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000}} onClick={()=>sShowK(0)}><div style={{background:C.pn,border:`1px solid ${C.bd}`,borderRadius:6,padding:12,width:500,maxHeight:"80vh",overflow:"auto"}} onClick={e=>e.stopPropagation()}>
-      <div style={{fontSize:10,fontWeight:600,marginBottom:5,color:C.ac}}>⌨ Auralith369 v0.3.0-alpha Shortcuts</div>
+      <div style={{fontSize:10,fontWeight:600,marginBottom:5,color:C.ac}}>⌨ Auralith369 v0.6.0-alpha Shortcuts</div>
       <div style={{columns:2,columnGap:10,fontSize:6.5,color:C.td,lineHeight:1.7}}>
         {[["B","Brush"],["E","Eraser"],["F","Smudge"],["O","Dodge"],["N","Burn"],["H","Heal"],["J","Col Replace"],["S","Clone"],["W","Liquify"],["G","Fill"],["A","CA Fill"],["D","Gradient"],["U","Shape"],["T","Text"],["P","Pen"],["I","Picker"],["Q","Ruler"],["L","Lasso"],["K","Magic Wand"],["M","Select"],["R","Transform"],["V","Move"],["C","Crop"],["[/]","Brush ±"],["X","Swap FG/BG"],["Ctrl+Z","Undo"],["⇧Ctrl+Z","Redo"],["Ctrl+C/X/V","Clipboard"],["Ctrl+D","Deselect"],["Del","Delete"],["Enter","Apply"],["Esc","Cancel"],["\\","Split View"],[",/.","Rotate View"],["0","Reset View"],["/ ","Shortcuts"]].map(([k,v])=>(<div key={k} style={{display:"flex",justifyContent:"space-between"}}><span style={{background:C.srf,padding:"0 2px",borderRadius:1,fontSize:5.5,color:C.tx}}>{k}</span><span>{v}</span></div>))}
       </div>

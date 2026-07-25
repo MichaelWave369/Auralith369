@@ -27,6 +27,14 @@ export const GPU_LAB_FRAGMENT_SHADER = `
   uniform float uBloomStrength;
   uniform float uBloomRadius;
   uniform float uBloomThreshold;
+  uniform float uScanlineSoftness;
+  uniform float uPhosphorMode;
+  uniform float uPhosphorStrength;
+  uniform float uGhosting;
+  uniform float uGhostOffset;
+  uniform float uBrightness;
+  uniform float uBlackCrush;
+  uniform float uHighlightRolloff;
 
   varying vec2 vUv;
 
@@ -75,6 +83,27 @@ export const GPU_LAB_FRAGMENT_SHADER = `
     return bloom / 8.0;
   }
 
+  vec3 phosphorPattern(vec2 pixel) {
+    if (uPhosphorMode < 0.5 || uPhosphorStrength <= 0.0) return vec3(1.0);
+
+    float column = mod(floor(pixel.x), 3.0);
+    vec3 stripe = column < 1.0
+      ? vec3(1.0, 0.42, 0.34)
+      : (column < 2.0 ? vec3(0.36, 1.0, 0.42) : vec3(0.42, 0.36, 1.0));
+
+    vec3 pattern = stripe;
+    if (uPhosphorMode > 1.5 && uPhosphorMode < 2.5) {
+      float rowGate = mix(0.68, 1.0, mod(floor(pixel.y / 2.0), 2.0));
+      pattern *= rowGate;
+    } else if (uPhosphorMode >= 2.5) {
+      float diagonal = mod(floor(pixel.x) + floor(pixel.y), 3.0);
+      float dotGate = diagonal < 1.0 ? 1.0 : 0.58;
+      pattern *= dotGate;
+    }
+
+    return mix(vec3(1.0), pattern, uPhosphorStrength);
+  }
+
   void main() {
     vec2 uv = curvedUv(vUv);
     if (outsideUnitSquare(uv)) {
@@ -92,10 +121,21 @@ export const GPU_LAB_FRAGMENT_SHADER = `
       sourceSample(uv - vec2(channelOffset, 0.0)).b
     );
 
+    if (uGhosting > 0.0) {
+      vec2 echoOffset = vec2(uGhostOffset * texel.x, 0.0);
+      vec3 firstEcho = sourceSample(uv - echoOffset).rgb;
+      vec3 secondEcho = sourceSample(uv - echoOffset * 2.0).rgb;
+      color += (firstEcho * 0.72 + secondEcho * 0.28) * uGhosting * 0.5;
+    }
+
     color += thresholdedBloom(uv, texel) * uBloomStrength;
 
-    float scanline = sin(uv.y * uScanlineCount * 6.28318530718) * 0.5 + 0.5;
+    float sineLine = sin(uv.y * uScanlineCount * 6.28318530718) * 0.5 + 0.5;
+    float hardLine = step(0.5, sineLine);
+    float scanline = mix(hardLine, sineLine, uScanlineSoftness);
     color *= 1.0 - scanline * uScanlineIntensity * uCrtEnabled;
+
+    color *= phosphorPattern(gl_FragCoord.xy) * mix(1.0, uBrightness, uCrtEnabled);
 
     vec2 centered = uv * 2.0 - 1.0;
     float vignette = smoothstep(1.25, 0.2, dot(centered, centered));
@@ -104,9 +144,22 @@ export const GPU_LAB_FRAGMENT_SHADER = `
     float noise = (randomNoise(gl_FragCoord.xy) - 0.5) * uNoise * uCrtEnabled;
     color += noise;
 
+    float crushRange = max(1.0 - uBlackCrush, 0.001);
+    color = max(color - vec3(uBlackCrush), vec3(0.0)) / crushRange;
+
+    vec3 compressed = color / (1.0 + max(color - vec3(0.55), vec3(0.0)) * 1.5);
+    color = mix(color, compressed, uHighlightRolloff);
+
     gl_FragColor = vec4(max(color, vec3(0.0)), center.a);
   }
 `;
+
+const PHOSPHOR_MODE = Object.freeze({
+  off: 0,
+  aperture: 1,
+  slot: 2,
+  triad: 3
+});
 
 function makeUniforms(settings) {
   return {
@@ -122,7 +175,15 @@ function makeUniforms(settings) {
     uNoise: { value: settings.crt.noise },
     uBloomStrength: { value: settings.bloom.enabled ? settings.bloom.strength : 0 },
     uBloomRadius: { value: settings.bloom.radius },
-    uBloomThreshold: { value: settings.bloom.threshold }
+    uBloomThreshold: { value: settings.bloom.threshold },
+    uScanlineSoftness: { value: settings.display.scanlineSoftness },
+    uPhosphorMode: { value: PHOSPHOR_MODE[settings.display.phosphorMask] ?? 0 },
+    uPhosphorStrength: { value: settings.display.phosphorStrength },
+    uGhosting: { value: settings.display.ghosting },
+    uGhostOffset: { value: settings.display.ghostOffset },
+    uBrightness: { value: settings.display.brightness },
+    uBlackCrush: { value: settings.display.blackCrush },
+    uHighlightRolloff: { value: settings.display.highlightRolloff }
   };
 }
 
@@ -182,7 +243,7 @@ export class GpuLabRenderer {
 
   updateSettings(input) {
     this.settings = normalizeGpuLabSettings(input);
-    const { crt, bloom } = this.settings;
+    const { crt, bloom, display } = this.settings;
     const uniforms = this.material.uniforms;
     uniforms.uCrtEnabled.value = crt.enabled ? 1 : 0;
     uniforms.uCurvature.value = crt.curvature;
@@ -194,6 +255,14 @@ export class GpuLabRenderer {
     uniforms.uBloomStrength.value = bloom.enabled ? bloom.strength : 0;
     uniforms.uBloomRadius.value = bloom.radius;
     uniforms.uBloomThreshold.value = bloom.threshold;
+    uniforms.uScanlineSoftness.value = display.scanlineSoftness;
+    uniforms.uPhosphorMode.value = PHOSPHOR_MODE[display.phosphorMask] ?? 0;
+    uniforms.uPhosphorStrength.value = display.phosphorStrength;
+    uniforms.uGhosting.value = display.ghosting;
+    uniforms.uGhostOffset.value = display.ghostOffset;
+    uniforms.uBrightness.value = display.brightness;
+    uniforms.uBlackCrush.value = display.blackCrush;
+    uniforms.uHighlightRolloff.value = display.highlightRolloff;
   }
 
   render(sourceCanvas) {

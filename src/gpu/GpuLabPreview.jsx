@@ -21,6 +21,8 @@ const GpuLabPreview = forwardRef(function GpuLabPreview({
   const rendererRef = useRef(null);
   const lastSourceRef = useRef(null);
   const onStatusRef = useRef(onStatus);
+  const animationRef = useRef(0);
+  const lastAnimationFrameRef = useRef(0);
   const [capability, setCapability] = useState({ supported: null, reason: 'Checking WebGL2…' });
   const [active, setActive] = useState(false);
   const [runtimeError, setRuntimeError] = useState('');
@@ -67,6 +69,8 @@ const GpuLabPreview = forwardRef(function GpuLabPreview({
     }
 
     return () => {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = 0;
       rendererRef.current?.dispose();
       rendererRef.current = null;
     };
@@ -76,6 +80,38 @@ const GpuLabPreview = forwardRef(function GpuLabPreview({
     rendererRef.current?.updateSettings(normalizedSettings);
     if (lastSourceRef.current) rendererRef.current?.render(lastSourceRef.current);
   }, [normalizedSettings]);
+
+  useEffect(() => {
+    cancelAnimationFrame(animationRef.current);
+    animationRef.current = 0;
+    lastAnimationFrameRef.current = 0;
+
+    if (!active || !normalizedSettings.feedback.enabled) return undefined;
+
+    const tick = timestamp => {
+      animationRef.current = requestAnimationFrame(tick);
+      if (document.hidden || timestamp - lastAnimationFrameRef.current < 33) return;
+      lastAnimationFrameRef.current = timestamp;
+      const renderer = rendererRef.current;
+      const source = lastSourceRef.current;
+      if (!renderer || !source) return;
+      try {
+        renderer.render(source, { updateSource: false });
+      } catch (error) {
+        console.warn('[Auralith369] GPU feedback animation failed', error);
+        setRuntimeError(error?.message || 'GPU feedback animation failed.');
+        setActive(false);
+        cancelAnimationFrame(animationRef.current);
+        animationRef.current = 0;
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(tick);
+    return () => {
+      cancelAnimationFrame(animationRef.current);
+      animationRef.current = 0;
+    };
+  }, [active, normalizedSettings.feedback.enabled]);
 
   useImperativeHandle(forwardedRef, () => ({
     render(sourceCanvas) {
@@ -89,6 +125,9 @@ const GpuLabPreview = forwardRef(function GpuLabPreview({
         setActive(false);
         return false;
       }
+    },
+    clearFeedback() {
+      return rendererRef.current?.clearFeedback() || false;
     },
     captureDataURL(type = 'image/png', quality) {
       if (!rendererRef.current || !active) return null;

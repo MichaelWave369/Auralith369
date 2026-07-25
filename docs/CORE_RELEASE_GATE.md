@@ -8,12 +8,12 @@ Auralith's Canvas 2D editor remains the authoritative editing and project engine
 - [x] Transactional undo/redo includes pixel layers, masks, layer metadata, active layer, and canvas size
 - [x] Browser smoke coverage opens every inspector and checks export paths
 - [x] No runtime third-party font request
-- [ ] Canvas compositing is frame-scheduled and coalesces repeated pointer updates
-- [ ] Edge-region tools work at all four canvas borders without swallowed exceptions
-- [ ] Internal clipboard and operating-system image paste have explicit precedence
-- [ ] Dependency installation is reproducible from a committed lockfile
+- [x] Canvas compositing is frame-scheduled and coalesces repeated pointer updates
+- [x] Edge-region tools work at all four canvas borders without swallowed exceptions
+- [x] Internal clipboard and operating-system image paste have explicit precedence
+- [x] Dependency installation is reproducible from a committed lockfile
 - [ ] Crash/refresh recovery protects unsaved work
-- [ ] Chromium, Firefox, and WebKit smoke suites pass
+- [x] Chromium, Firefox, and WebKit smoke suites pass
 - [ ] 1080p and 4K performance budgets are recorded and enforced
 
 ## Architectural boundary

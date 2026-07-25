@@ -111,3 +111,42 @@ test('undo redo save reopen and PNG export remain operational', async ({ page })
 
   expect(errors).toEqual([]);
 });
+
+
+test('edge tools remain operational at all four canvas borders', async ({ page }) => {
+  const errors = collectPageErrors(page);
+  await page.goto('./');
+  const canvas = page.locator('.auralith-editor-root canvas').first();
+  await expect(canvas).toBeVisible();
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('Main editor canvas has no bounding box.');
+
+  const points = [
+    { x: box.x + 3, y: box.y + 3 },
+    { x: box.x + box.width - 3, y: box.y + 3 },
+    { x: box.x + 3, y: box.y + box.height - 3 },
+    { x: box.x + box.width - 3, y: box.y + box.height - 3 }
+  ];
+
+  for (const tool of ['Smudge (F)', 'Dodge (O)', 'Burn (N)', 'ColSwap (J)', 'Liquify (W)']) {
+    await page.getByTitle(tool).click();
+    for (const point of points) {
+      await page.mouse.move(point.x, point.y);
+      await page.mouse.down();
+      await page.mouse.move(point.x + (point.x < box.x + box.width / 2 ? 4 : -4), point.y, { steps: 2 });
+      await page.mouse.up();
+    }
+  }
+
+  await page.getByTitle('Clone (S)').click();
+  await page.keyboard.down('Alt');
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await page.keyboard.up('Alt');
+  await page.mouse.move(points[0].x, points[0].y);
+  await page.mouse.down();
+  await page.mouse.move(points[0].x + 4, points[0].y + 4, { steps: 2 });
+  await page.mouse.up();
+
+  await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

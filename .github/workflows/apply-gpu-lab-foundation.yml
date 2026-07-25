@@ -1,7 +1,7 @@
 name: Apply GPU Lab foundation
 
 on:
-  pull_request:
+  push:
     branches: [main]
 
 permissions:
@@ -9,13 +9,12 @@ permissions:
 
 jobs:
   integrate:
-    if: github.head_ref == 'ori/gpu-lab-foundation'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout GPU branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: ori/gpu-lab-foundation
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -276,4 +275,4 @@ GPU Lab is an optional non-destructive preview renderer. Canvas 2D remains autho
             exit 0
           fi
           git commit -m "Integrate optional GPU Lab preview"
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:ori/gpu-lab-foundation

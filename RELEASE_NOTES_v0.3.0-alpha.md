@@ -33,4 +33,5 @@ Canvas 2D remains authoritative for pixels, layers, masks, tools, undo/redo, rec
 - Local cartridge/favorite storage tests
 - Production build gate
 - Chromium, Firefox, and WebKit browser smoke tests
+- Existing GPU capability coverage updated for the v0.2 panel
 - Existing save/reopen, recovery, edge-tool, export, and performance gates

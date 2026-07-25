@@ -12,9 +12,9 @@ Auralith's Canvas 2D editor remains the authoritative editing and project engine
 - [x] Edge-region tools work at all four canvas borders without swallowed exceptions
 - [x] Internal clipboard and operating-system image paste have explicit precedence
 - [x] Dependency installation is reproducible from a committed lockfile
-- [ ] Crash/refresh recovery protects unsaved work
+- [x] Crash/refresh recovery protects unsaved work
 - [x] Chromium, Firefox, and WebKit smoke suites pass
-- [ ] 1080p and 4K performance budgets are recorded and enforced
+- [x] 1080p and 4K performance budgets are recorded and enforced
 
 ## Architectural boundary
 

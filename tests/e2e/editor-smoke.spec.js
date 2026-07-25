@@ -194,7 +194,7 @@ test('GPU Lab exposes a live WebGL2 preview or a clean fallback', async ({ page,
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.5/).first()).toBeVisible();
 
   const capability = page.getByTestId('gpu-capability');
   await expect(capability).not.toContainText('Checking WebGL2', { timeout: 12_000 });
@@ -226,7 +226,7 @@ test('GPU Cartridge Bay loads, saves, persists, and exports presets', async ({ p
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.5/).first()).toBeVisible();
 
   const select = page.getByTestId('gpu-preset-select');
   await select.selectOption('builtin:cathedral-resonance');
@@ -255,7 +255,7 @@ test('GPU Display Physics controls cartridges and live settings', async ({ page 
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.5/).first()).toBeVisible();
   await expect(page.getByTestId('gpu-display-physics')).toBeVisible();
 
   await page.getByTestId('gpu-preset-select').selectOption('builtin:cathedral-resonance');
@@ -276,7 +276,7 @@ test('GPU Feedback Chamber exposes recursive controls and safe clearing', async 
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.5/).first()).toBeVisible();
   await expect(page.getByTestId('gpu-feedback-chamber')).toBeVisible();
 
   await page.getByTestId('gpu-preset-select').selectOption('builtin:infinite-cathedral');
@@ -288,6 +288,28 @@ test('GPU Feedback Chamber exposes recursive controls and safe clearing', async 
   await expect(page.getByTestId('gpu-active-preset')).toContainText('modified');
   await page.getByText('Clear Frame', { exact: true }).click();
   await expect(page.getByText('Feedback buffer cleared', { exact: true })).toBeVisible();
+  await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+
+test('GPU Spectral Forge exposes prism and color controls', async ({ page }) => {
+  const errors = collectPageErrors(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: 'gpu', exact: true }).click();
+  await expect(page.getByText(/GPU Lab v0\.5/).first()).toBeVisible();
+  await expect(page.getByTestId('gpu-spectral-forge')).toBeVisible();
+
+  await page.getByTestId('gpu-preset-select').selectOption('builtin:prism-oracle');
+  await expect(page.getByRole('button', { name: 'Spectral On', exact: true })).toBeVisible();
+  await expect(page.getByTestId('gpu-channel-map')).toHaveValue('rgb');
+  await expect(page.getByTestId('gpu-shadow-tint')).toHaveValue('#34136f');
+  await expect(page.getByTestId('gpu-highlight-tint')).toHaveValue('#69f7ff');
+
+  await page.getByTestId('gpu-channel-map').selectOption('bgr');
+  await expect(page.getByTestId('gpu-active-preset')).toContainText('modified');
+  await expect(page.getByText('Prism Dispersion', { exact: true })).toBeVisible();
+  await expect(page.getByText('Solarize', { exact: true })).toBeVisible();
   await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
   expect(errors).toEqual([]);
 });

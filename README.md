@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.4.0-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.6.0-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -30,7 +30,7 @@ Auralith369 is a public-alpha creative workstation by PHI369 Labs for image edit
 - Auralith Receipt export (`.auralith-receipt.json`)
 - Auralith Manifest export (`.auralith-manifest.md`)
 - Version snapshots and social pack export oriented pipeline
-- Optional Three.js/WebGL2 GPU Lab with cartridges, CRT Signal, Aura Bloom, Display Physics, and explicit GPU-frame export
+- Optional Three.js/WebGL2 GPU Lab with cartridges, CRT Signal, Aura Bloom, Display Physics, Feedback Chamber, Spectral Forge, and explicit GPU-frame export
 
 ## Current Stability Pass
 
@@ -82,6 +82,8 @@ See docs:
 - `docs/STYLE_CARDS.md`
 - `docs/GPU_CARTRIDGE_BAY.md`
 - `docs/GPU_DISPLAY_PHYSICS.md`
+- `docs/GPU_FEEDBACK_CHAMBER.md`
+- `docs/GPU_SPECTRAL_FORGE.md`
 
 ## Visual Identity
 
@@ -104,6 +106,10 @@ Full workflow screenshots are the next documentation pass. The live demo is the 
 [View infographic poster](./auralith369-infographic-poster.png)
 
 The infographic summarizes the alpha feature set, project format, validation flow, deployment status, and next planned evolutions.
+
+## GPU Spectral Forge (v0.6.0-alpha)
+
+GPU Lab v0.5 adds Prism Drift and Spectral Forge: radial RGB dispersion, hue rotation, saturation shaping, shadow/highlight duotone mapping, solarization, and six safe channel-remap modes. Two new built-in cartridges—**Prism Oracle** and **Solarized Reliquary**—join the Cartridge Bay. Older cartridges remain compatible through neutral normalized defaults, and the full spectral state is preserved in projects, recovery, receipts, manifests, and portable cartridge JSON.
 
 ## GPU Cartridge Bay and Feedback Chamber (v0.5.0-alpha)
 

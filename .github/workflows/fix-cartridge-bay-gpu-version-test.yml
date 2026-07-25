@@ -1,0 +1,28 @@
+name: Fix Cartridge Bay GPU version test
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: ori/gpu-cartridge-bay-v02
+
+      - name: Update GPU version assertion
+        run: sed -i 's/GPU Lab v0\\.1/GPU Lab v0\\.2/' tests/e2e/editor-smoke.spec.js
+
+      - name: Commit repair
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/editor-smoke.spec.js
+          git commit -m "Test GPU Lab v0.2 browser gate"
+          git push origin HEAD:ori/gpu-cartridge-bay-v02

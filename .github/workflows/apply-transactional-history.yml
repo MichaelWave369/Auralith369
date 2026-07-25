@@ -1,0 +1,39 @@
+name: Apply transactional history pass
+
+on:
+  push:
+    branches: [ori/transactional-history-smoke]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ori/transactional-history-smoke
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Apply one-shot source refactor
+        run: node scripts/apply-transactional-history-pass.mjs
+
+      - name: Commit patched editor
+        run: |
+          if git diff --quiet; then
+            echo "No source changes were produced."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Auralith369.jsx
+          git commit -m "fix: make editor history transactional"
+          git push origin HEAD:ori/transactional-history-smoke

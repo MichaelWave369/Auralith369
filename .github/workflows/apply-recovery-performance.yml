@@ -1,0 +1,43 @@
+name: Apply recovery and performance pass
+
+on:
+  push:
+    branches: [ori/core-recovery-performance]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auralith-recovery-performance-patch
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ori/core-recovery-performance
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply source patch
+        run: node scripts/apply-recovery-performance-pass.mjs
+
+      - name: Commit generated changes
+        run: |
+          if git diff --quiet; then
+            echo "No source changes were produced."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Auralith369.jsx tests/e2e/editor-smoke.spec.js
+          git commit -m "feat: add session recovery and performance diagnostics"
+          git push origin HEAD:ori/core-recovery-performance

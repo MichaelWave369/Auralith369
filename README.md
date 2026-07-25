@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.1.0-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.2.0-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -30,6 +30,7 @@ Auralith369 is a public-alpha creative workstation by PHI369 Labs for image edit
 - Auralith Receipt export (`.auralith-receipt.json`)
 - Auralith Manifest export (`.auralith-manifest.md`)
 - Version snapshots and social pack export oriented pipeline
+- Optional Three.js/WebGL2 GPU Lab with CRT Signal, Aura Bloom, and explicit GPU-frame export
 
 ## Current Stability Pass
 
@@ -41,6 +42,10 @@ The current branch includes a focused runtime and file-integrity pass:
 - Restricts embedded project imagery to bounded base64 PNG, JPEG, or WebP data URLs
 - Adds regression tests for runtime overlays and project round trips
 - Integrates the new Auralith369 mark, favicon, social banner, and emulator-inspired interface polish
+
+## GPU Lab boundary
+
+GPU Lab is an optional non-destructive preview renderer. Canvas 2D remains authoritative for project files, editing tools, layers, masks, undo/redo, recovery, receipts, manifests, and standard exports. See `docs/GPU_LAB_ARCHITECTURE.md`.
 
 ## Local Setup
 ```bash

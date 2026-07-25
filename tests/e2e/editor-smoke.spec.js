@@ -7,7 +7,7 @@ function collectPageErrors(page) {
 }
 
 async function clickInspectorTabs(page) {
-  for (const tab of ['layers', 'fx', 'lut', 'style', 'forge', 'adj', 'plug', 'act', 'exp']) {
+  for (const tab of ['layers', 'fx', 'lut', 'style', 'forge', 'adj', 'gpu', 'plug', 'act', 'exp']) {
     await page.getByRole('button', { name: tab, exact: true }).click();
     await expect(page.locator('.auralith-editor-root')).toBeVisible();
     await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
@@ -187,4 +187,36 @@ test('Canvas 2D compositor stays inside 1080p and 4K budgets', async ({ page, br
   const fourK = await measureAt(3840, 2160, 2);
   expect(fourK.averageMs).toBeLessThanOrEqual(2000);
   expect(fourK.maxMs).toBeLessThanOrEqual(3000);
+});
+
+
+test('GPU Lab exposes a live WebGL2 preview or a clean fallback', async ({ page, browserName }) => {
+  const errors = collectPageErrors(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: 'gpu', exact: true }).click();
+  await expect(page.getByText(/GPU Lab v0\.1/).first()).toBeVisible();
+
+  const capability = page.getByTestId('gpu-capability');
+  await expect(capability).not.toContainText('Checking WebGL2', { timeout: 12_000 });
+  const capabilityText = await capability.textContent();
+  const enableGpu = page.getByRole('button', { name: 'Enable GPU Preview', exact: true });
+
+  if (await enableGpu.isEnabled()) {
+    await enableGpu.click();
+    await expect(page.getByTestId('gpu-preview-canvas')).toHaveAttribute('data-gpu-preview', 'active', { timeout: 12_000 });
+    await drawStroke(page);
+
+    if (browserName === 'chromium') {
+      const downloadPromise = page.waitForEvent('download');
+      await page.getByRole('button', { name: 'Export GPU PNG', exact: true }).click();
+      const download = await downloadPromise;
+      expect(download.suggestedFilename()).toMatch(/.gpu.png$/);
+    }
+  } else {
+    await expect(capability).toContainText(/unavailable|could not create/i);
+    await expect(page.getByTestId('gpu-preview-canvas')).toHaveAttribute('data-gpu-preview', 'inactive');
+  }
+
+  await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
+  expect(errors).toEqual([]);
 });

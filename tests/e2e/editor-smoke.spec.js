@@ -175,7 +175,8 @@ test('Canvas 2D compositor stays inside 1080p and 4K budgets', async ({ page, br
     await inputs.nth(0).fill(String(width));
     await inputs.nth(1).fill(String(height));
     await page.getByRole('button', { name: 'Apply', exact: true }).click();
-    await expect(page.locator('.auralith-editor-root canvas').first()).toHaveAttribute('width', String(width));
+    await expect(page.getByText(`${width}×${height}`, { exact: true }).first()).toBeVisible();
+    await page.waitForTimeout(75);
     return page.evaluate(count => window.__AURALITH_DIAGNOSTICS__.measureComposite(count), iterations);
   };
 

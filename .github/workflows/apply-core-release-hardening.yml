@@ -1,0 +1,49 @@
+name: Apply Auralith Core hardening
+
+on:
+  push:
+    branches: [ori/core-release-hardening]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auralith-core-hardening
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ori/core-release-hardening
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply source hardening
+        run: node scripts/apply-core-release-hardening.mjs
+
+      - name: Generate reproducible dependency lock
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Mark lockfile gate complete
+        run: sed -i 's/- \[ \] Dependency installation is reproducible from a committed lockfile/- [x] Dependency installation is reproducible from a committed lockfile/' docs/CORE_RELEASE_GATE.md
+
+      - name: Commit generated changes
+        run: |
+          if git diff --quiet; then
+            echo "No source changes were produced."
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/Auralith369.jsx tests/e2e/editor-smoke.spec.js docs/CORE_RELEASE_GATE.md package-lock.json
+          git commit -m "fix: harden Auralith Core rendering and edge tools"
+          git push origin HEAD:ori/core-release-hardening

@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.2.0-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.4.0-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -30,7 +30,7 @@ Auralith369 is a public-alpha creative workstation by PHI369 Labs for image edit
 - Auralith Receipt export (`.auralith-receipt.json`)
 - Auralith Manifest export (`.auralith-manifest.md`)
 - Version snapshots and social pack export oriented pipeline
-- Optional Three.js/WebGL2 GPU Lab with CRT Signal, Aura Bloom, and explicit GPU-frame export
+- Optional Three.js/WebGL2 GPU Lab with cartridges, CRT Signal, Aura Bloom, Display Physics, and explicit GPU-frame export
 
 ## Current Stability Pass
 
@@ -73,12 +73,15 @@ npm run build
 - Project: `.auralith`
 - Receipt: `.auralith-receipt.json`
 - Manifest: `.auralith-manifest.md`
+- GPU cartridge: `.auralith-gpu.json`
 
 See docs:
 - `docs/FILE_FORMAT.md`
 - `docs/RECEIPTS.md`
 - `docs/MANIFESTS.md`
 - `docs/STYLE_CARDS.md`
+- `docs/GPU_CARTRIDGE_BAY.md`
+- `docs/GPU_DISPLAY_PHYSICS.md`
 
 ## Visual Identity
 
@@ -105,6 +108,10 @@ The infographic summarizes the alpha feature set, project format, validation flo
 ## GPU Cartridge Bay (v0.3.0-alpha)
 
 GPU Lab v0.2 adds a local visual-cartridge workflow: eight built-in signal presets, custom save/update/clone/rename/delete, favorites, JSON import/export, bypass and hold-original comparison, and project/receipt/manifest persistence. The first-session high-energy settings are preserved as the built-in **Cathedral Resonance** cartridge. Canvas 2D remains authoritative.
+
+## GPU Display Physics (v0.4.0-alpha)
+
+GPU Lab v0.3 adds phosphor mask simulation, scanline softness, signal ghosting, brightness compensation, black-crush shaping, and highlight rolloff. Every control is normalized, stored inside cartridges, project files, recovery snapshots, receipts, and manifests, and rendered without replacing the Canvas 2D authority layer.
 
 ## Roadmap
 See `ROADMAP.md`.

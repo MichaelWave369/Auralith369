@@ -1,4 +1,4 @@
-// Auralith369 v0.3.0-alpha — local-first visual alchemy by PHI369 Labs
+// Auralith369 v0.4.0-alpha — local-first visual alchemy by PHI369 Labs
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
@@ -11,7 +11,7 @@ import { GPU_LAB_DEFAULTS, normalizeGpuLabProjectState, normalizeGpuLabSettings 
 import { GPU_LAB_BUILTIN_PRESETS, createCustomGpuPreset, findGpuPreset, parseGpuPresetText, serializeGpuPreset, updateCustomGpuPreset } from "./gpu/gpuLabPresets.js";
 import { loadCustomGpuPresets, loadGpuFavoriteIds, saveCustomGpuPresets, saveGpuFavoriteIds } from "./gpu/gpuPresetStorage.js";
 
-const APP_VERSION="v0.3.0-alpha";
+const APP_VERSION="v0.4.0-alpha";
 const PHI=1.618033988749895,LAM=0.618033988749895;
 const C={bg:"#050910",pn:"#090e1b",pa:"#0b1120",bd:"#121a2f",srf:"#0d142c",sh:"#121b3a",sa:"#172249",ac:"#00d4aa",ad:"#00a88622",ag:"#00d4aa10",gd:"#d4a017",pr:"#8b5cf6",rd:"#ef4444",bl:"#3b82f6",gn:"#10b981",cy:"#06b6d4",pk:"#ec4899",or:"#f97316",tx:"#e2e8f0",td:"#7085a8",tm:"#3a4c66",wh:"#fff",bk:"#000"};
 const FN="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace";
@@ -563,7 +563,7 @@ export default function Auralith369(){
           </>}
 
           {rT==="gpu"&&<>
-            <Hd ic="◈">GPU Lab v0.2</Hd>
+            <Hd ic="◈">GPU Lab v0.3</Hd>
             <Hd ic="▣">Cartridge Bay</Hd>
             <select data-testid="gpu-preset-select" value={activeGpuPresetId} onChange={e=>applyGpuPresetById(e.target.value)} style={{width:"100%",marginBottom:2,fontSize:6.5}}>
               <option value="">Custom / unsaved signal</option>
@@ -592,12 +592,23 @@ export default function Auralith369(){
             <Sl l="RGB Split" v={gpuSettings.crt.chromaticAberration} mn={0} mx={8} s={.1} ch={value=>setGpuValue("crt","chromaticAberration",value)} u="px" c={C.cy}/>
             <Sl l="Vignette" v={gpuSettings.crt.vignette*100} mn={0} mx={80} ch={value=>setGpuValue("crt","vignette",value/100)} u="%"/>
             <Sl l="Signal Noise" v={gpuSettings.crt.noise*1000} mn={0} mx={120} ch={value=>setGpuValue("crt","noise",value/1000)} u="‰"/>
+            <div data-testid="gpu-display-physics">
+              <Hd ic="▦">Display Physics</Hd>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:3,marginBottom:3}}><span style={{fontSize:6.5,color:C.td}}>Phosphor Mask</span><select data-testid="gpu-phosphor-mask" value={gpuSettings.display.phosphorMask} onChange={e=>setGpuValue("display","phosphorMask",e.target.value)} style={{fontSize:6.5,minWidth:82}}>{[["off","Off"],["aperture","Aperture"],["slot","Slot Mask"],["triad","Triad Dots"]].map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></div>
+              <Sl l="Scanline Softness" v={gpuSettings.display.scanlineSoftness*100} mn={0} mx={100} ch={value=>setGpuValue("display","scanlineSoftness",value/100)} u="%" c={C.cy}/>
+              <Sl l="Phosphor Strength" v={gpuSettings.display.phosphorStrength*100} mn={0} mx={85} ch={value=>setGpuValue("display","phosphorStrength",value/100)} u="%" c={C.gn}/>
+              <Sl l="Signal Ghosting" v={gpuSettings.display.ghosting*100} mn={0} mx={85} ch={value=>setGpuValue("display","ghosting",value/100)} u="%" c={C.pr}/>
+              <Sl l="Ghost Offset" v={gpuSettings.display.ghostOffset} mn={0} mx={24} s={.5} ch={value=>setGpuValue("display","ghostOffset",value)} u="px" c={C.pr}/>
+              <Sl l="Brightness Comp" v={gpuSettings.display.brightness*100} mn={50} mx={180} ch={value=>setGpuValue("display","brightness",value/100)} u="%" c={C.gd}/>
+              <Sl l="Black Crush" v={gpuSettings.display.blackCrush*100} mn={0} mx={45} ch={value=>setGpuValue("display","blackCrush",value/100)} u="%" c={C.or}/>
+              <Sl l="Highlight Rolloff" v={gpuSettings.display.highlightRolloff*100} mn={0} mx={100} ch={value=>setGpuValue("display","highlightRolloff",value/100)} u="%" c={C.gd}/>
+            </div>
             <Hd ic="✦">Aura Bloom</Hd>
             <Bt a={gpuSettings.bloom.enabled} onClick={()=>setGpuValue("bloom","enabled",!gpuSettings.bloom.enabled)} sm>{gpuSettings.bloom.enabled?"Bloom On":"Bloom Off"}</Bt>
             <Sl l="Strength" v={gpuSettings.bloom.strength*100} mn={0} mx={250} ch={value=>setGpuValue("bloom","strength",value/100)} u="%" c={C.pr}/>
             <Sl l="Radius" v={gpuSettings.bloom.radius*100} mn={0} mx={100} ch={value=>setGpuValue("bloom","radius",value/100)} u="%"/>
             <Sl l="Threshold" v={gpuSettings.bloom.threshold*100} mn={0} mx={100} ch={value=>setGpuValue("bloom","threshold",value/100)} u="%" c={C.gd}/>
-            <div style={{display:"flex",gap:2,marginTop:4}}><Bt onClick={()=>{setGpuSettings(normalizeGpuLabSettings(GPU_LAB_DEFAULTS));setActiveGpuPresetId("builtin:golden-oracle");setGpuPresetName("Golden Oracle");setGpuPresetDirty(0);}} sm style={{flex:1}}>Reset</Bt><Bt onClick={exportGpuFrame} sm style={{flex:1,color:gpuStatus.active?C.ac:C.tm}}>Export GPU PNG</Bt></div>
+            <div style={{display:"flex",gap:2,marginTop:4}}><Bt onClick={()=>applyGpuPresetById("builtin:golden-oracle")} sm style={{flex:1}}>Reset</Bt><Bt onClick={exportGpuFrame} sm style={{flex:1,color:gpuStatus.active?C.ac:C.tm}}>Export GPU PNG</Bt></div>
             <div style={{marginTop:5,padding:4,background:C.srf,borderRadius:3,border:`1px solid ${C.bd}`,fontSize:5.5,color:C.tm,lineHeight:1.5}}>Cartridges stay local in this browser. Project files preserve exact GPU settings and cartridge identity. Canvas 2D remains authoritative.</div>
           </>}
 

@@ -45,6 +45,15 @@ export const GPU_LAB_FRAGMENT_SHADER = `
   uniform float uFeedbackMirror;
   uniform float uFeedbackKaleidoscope;
   uniform float uFeedbackBlend;
+  uniform float uSpectralEnabled;
+  uniform float uHueShift;
+  uniform float uSaturation;
+  uniform float uPrismAmount;
+  uniform vec3 uShadowTint;
+  uniform vec3 uHighlightTint;
+  uniform float uTintStrength;
+  uniform float uSolarize;
+  uniform float uChannelMap;
 
   varying vec2 vUv;
 
@@ -152,6 +161,40 @@ export const GPU_LAB_FRAGMENT_SHADER = `
     return vec3(1.0) - (vec3(1.0) - base) * (vec3(1.0) - echo * amount);
   }
 
+  vec3 rotateHue(vec3 color, float angle) {
+    vec3 axis = normalize(vec3(1.0));
+    float cosine = cos(angle);
+    float sine = sin(angle);
+    return color * cosine + cross(axis, color) * sine + axis * dot(axis, color) * (1.0 - cosine);
+  }
+
+  vec3 remapChannels(vec3 color) {
+    if (uChannelMap < 0.5) return color.rgb;
+    if (uChannelMap < 1.5) return color.rbg;
+    if (uChannelMap < 2.5) return color.grb;
+    if (uChannelMap < 3.5) return color.gbr;
+    if (uChannelMap < 4.5) return color.brg;
+    return color.bgr;
+  }
+
+  vec3 applySpectralForge(vec3 color) {
+    if (uSpectralEnabled < 0.5) return color;
+
+    color = remapChannels(color);
+    color = rotateHue(color, uHueShift);
+
+    float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+    color = mix(vec3(luminance), color, uSaturation);
+
+    luminance = clamp(dot(color, vec3(0.2126, 0.7152, 0.0722)), 0.0, 1.0);
+    vec3 duotone = mix(uShadowTint, uHighlightTint, smoothstep(0.0, 1.0, luminance));
+    vec3 toned = duotone * max(luminance * 1.35, 0.08);
+    color = mix(color, toned, uTintStrength);
+
+    vec3 solarized = vec3(1.0) - abs(color * 2.0 - vec3(1.0));
+    return mix(color, solarized, uSolarize);
+  }
+
   void main() {
     vec2 uv = curvedUv(vUv);
     if (outsideUnitSquare(uv)) {
@@ -161,13 +204,17 @@ export const GPU_LAB_FRAGMENT_SHADER = `
 
     vec2 texel = 1.0 / max(uResolution, vec2(1.0));
     float channelOffset = uChromaticAberration * texel.x * uCrtEnabled;
+    vec2 radial = uv - 0.5;
+    float radialLength = length(radial);
+    vec2 radialDirection = radialLength > 0.0001 ? radial / radialLength : vec2(1.0, 0.0);
+    vec2 prismOffset = radialDirection * texel * uPrismAmount * uSpectralEnabled;
     vec4 center = sourceSample(uv);
     float outputAlpha = center.a;
 
     vec3 color = vec3(
-      sourceSample(uv + vec2(channelOffset, 0.0)).r,
+      sourceSample(uv + vec2(channelOffset, 0.0) + prismOffset).r,
       center.g,
-      sourceSample(uv - vec2(channelOffset, 0.0)).b
+      sourceSample(uv - vec2(channelOffset, 0.0) - prismOffset).b
     );
 
     if (uGhosting > 0.0) {
@@ -188,6 +235,8 @@ export const GPU_LAB_FRAGMENT_SHADER = `
         outputAlpha = max(outputAlpha, echoSample.a * uFeedbackAmount);
       }
     }
+
+    color = applySpectralForge(color);
 
     float sineLine = sin(uv.y * uScanlineCount * TAU) * 0.5 + 0.5;
     float hardLine = step(0.5, sineLine);
@@ -225,6 +274,12 @@ const DISPLAY_FRAGMENT_SHADER = `
 const PHOSPHOR_MODE = Object.freeze({ off: 0, aperture: 1, slot: 2, triad: 3 });
 const FEEDBACK_MIRROR = Object.freeze({ off: 0, x: 1, y: 2, quad: 3 });
 const FEEDBACK_BLEND = Object.freeze({ mix: 0, add: 1, screen: 2 });
+const CHANNEL_MAP = Object.freeze({ rgb: 0, rbg: 1, grb: 2, gbr: 3, brg: 4, bgr: 5 });
+
+const colorVector = value => {
+  const color = new THREE.Color(value);
+  return new THREE.Vector3(color.r, color.g, color.b);
+};
 
 function makeUniforms(settings) {
   return {
@@ -258,7 +313,16 @@ function makeUniforms(settings) {
     uFeedbackOffset: { value: new THREE.Vector2(settings.feedback.offsetX, settings.feedback.offsetY) },
     uFeedbackMirror: { value: FEEDBACK_MIRROR[settings.feedback.mirror] ?? 0 },
     uFeedbackKaleidoscope: { value: settings.feedback.kaleidoscope },
-    uFeedbackBlend: { value: FEEDBACK_BLEND[settings.feedback.blend] ?? 2 }
+    uFeedbackBlend: { value: FEEDBACK_BLEND[settings.feedback.blend] ?? 2 },
+    uSpectralEnabled: { value: settings.spectral.enabled ? 1 : 0 },
+    uHueShift: { value: THREE.MathUtils.degToRad(settings.spectral.hueShift) },
+    uSaturation: { value: settings.spectral.saturation },
+    uPrismAmount: { value: settings.spectral.prismAmount },
+    uShadowTint: { value: colorVector(settings.spectral.shadowTint) },
+    uHighlightTint: { value: colorVector(settings.spectral.highlightTint) },
+    uTintStrength: { value: settings.spectral.tintStrength },
+    uSolarize: { value: settings.spectral.solarize },
+    uChannelMap: { value: CHANNEL_MAP[settings.spectral.channelMap] ?? 0 }
   };
 }
 
@@ -368,7 +432,7 @@ export class GpuLabRenderer {
   updateSettings(input) {
     const previousFeedback = this.settings.feedback.enabled;
     this.settings = normalizeGpuLabSettings(input);
-    const { crt, bloom, display, feedback } = this.settings;
+    const { crt, bloom, display, feedback, spectral } = this.settings;
     const uniforms = this.material.uniforms;
     uniforms.uCrtEnabled.value = crt.enabled ? 1 : 0;
     uniforms.uCurvature.value = crt.curvature;
@@ -397,6 +461,15 @@ export class GpuLabRenderer {
     uniforms.uFeedbackMirror.value = FEEDBACK_MIRROR[feedback.mirror] ?? 0;
     uniforms.uFeedbackKaleidoscope.value = feedback.kaleidoscope;
     uniforms.uFeedbackBlend.value = FEEDBACK_BLEND[feedback.blend] ?? 2;
+    uniforms.uSpectralEnabled.value = spectral.enabled ? 1 : 0;
+    uniforms.uHueShift.value = THREE.MathUtils.degToRad(spectral.hueShift);
+    uniforms.uSaturation.value = spectral.saturation;
+    uniforms.uPrismAmount.value = spectral.prismAmount;
+    uniforms.uShadowTint.value.set(...colorVector(spectral.shadowTint).toArray());
+    uniforms.uHighlightTint.value.set(...colorVector(spectral.highlightTint).toArray());
+    uniforms.uTintStrength.value = spectral.tintStrength;
+    uniforms.uSolarize.value = spectral.solarize;
+    uniforms.uChannelMap.value = CHANNEL_MAP[spectral.channelMap] ?? 0;
 
     if (previousFeedback !== feedback.enabled) this.clearFeedback();
   }
@@ -458,6 +531,11 @@ export class GpuLabRenderer {
         enabled: this.settings.feedback.enabled,
         frames: this.feedbackFrames,
         pingPongTargets: 2
+      },
+      spectral: {
+        enabled: this.settings.spectral.enabled,
+        channelMap: this.settings.spectral.channelMap,
+        prismAmount: this.settings.spectral.prismAmount
       }
     };
   }

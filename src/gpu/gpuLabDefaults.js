@@ -6,10 +6,20 @@ const clamp = (value, min, max, fallback) => {
 const PHOSPHOR_MASKS = Object.freeze(['off', 'aperture', 'slot', 'triad']);
 const FEEDBACK_MIRRORS = Object.freeze(['off', 'x', 'y', 'quad']);
 const FEEDBACK_BLENDS = Object.freeze(['mix', 'add', 'screen']);
+const SPECTRAL_CHANNEL_MAPS = Object.freeze(['rgb', 'rbg', 'grb', 'gbr', 'brg', 'bgr']);
 
 const normalizeEnum = (value, values, fallback) => {
   const mode = String(value || '').toLowerCase();
   return values.includes(mode) ? mode : fallback;
+};
+
+const normalizeHexColor = (value, fallback) => {
+  const text = String(value || '').trim().toLowerCase();
+  if (/^#[0-9a-f]{6}$/.test(text)) return text;
+  if (/^#[0-9a-f]{3}$/.test(text)) {
+    return `#${text.slice(1).split('').map(character => character + character).join('')}`;
+  }
+  return fallback;
 };
 
 export const GPU_LAB_DEFAULTS = Object.freeze({
@@ -49,6 +59,17 @@ export const GPU_LAB_DEFAULTS = Object.freeze({
     mirror: 'off',
     kaleidoscope: 0,
     blend: 'screen'
+  }),
+  spectral: Object.freeze({
+    enabled: false,
+    hueShift: 0,
+    saturation: 1,
+    prismAmount: 0,
+    shadowTint: '#25134f',
+    highlightTint: '#ffd76a',
+    tintStrength: 0,
+    solarize: 0,
+    channelMap: 'rgb'
   })
 });
 
@@ -57,6 +78,7 @@ export function normalizeGpuLabSettings(input = {}) {
   const bloom = input.bloom || {};
   const display = input.display || {};
   const feedback = input.feedback || {};
+  const spectral = input.spectral || {};
 
   return {
     crt: {
@@ -95,6 +117,17 @@ export function normalizeGpuLabSettings(input = {}) {
       mirror: normalizeEnum(feedback.mirror, FEEDBACK_MIRRORS, GPU_LAB_DEFAULTS.feedback.mirror),
       kaleidoscope: Math.round(clamp(feedback.kaleidoscope, 0, 12, GPU_LAB_DEFAULTS.feedback.kaleidoscope)),
       blend: normalizeEnum(feedback.blend, FEEDBACK_BLENDS, GPU_LAB_DEFAULTS.feedback.blend)
+    },
+    spectral: {
+      enabled: spectral.enabled ?? GPU_LAB_DEFAULTS.spectral.enabled,
+      hueShift: clamp(spectral.hueShift, -180, 180, GPU_LAB_DEFAULTS.spectral.hueShift),
+      saturation: clamp(spectral.saturation, 0, 2.5, GPU_LAB_DEFAULTS.spectral.saturation),
+      prismAmount: clamp(spectral.prismAmount, 0, 24, GPU_LAB_DEFAULTS.spectral.prismAmount),
+      shadowTint: normalizeHexColor(spectral.shadowTint, GPU_LAB_DEFAULTS.spectral.shadowTint),
+      highlightTint: normalizeHexColor(spectral.highlightTint, GPU_LAB_DEFAULTS.spectral.highlightTint),
+      tintStrength: clamp(spectral.tintStrength, 0, 1, GPU_LAB_DEFAULTS.spectral.tintStrength),
+      solarize: clamp(spectral.solarize, 0, 1, GPU_LAB_DEFAULTS.spectral.solarize),
+      channelMap: normalizeEnum(spectral.channelMap, SPECTRAL_CHANNEL_MAPS, GPU_LAB_DEFAULTS.spectral.channelMap)
     }
   };
 }
@@ -106,4 +139,10 @@ export function normalizeGpuLabProjectState(input = {}) {
   };
 }
 
-export { PHOSPHOR_MASKS, FEEDBACK_MIRRORS, FEEDBACK_BLENDS };
+export {
+  PHOSPHOR_MASKS,
+  FEEDBACK_MIRRORS,
+  FEEDBACK_BLENDS,
+  SPECTRAL_CHANNEL_MAPS,
+  normalizeHexColor
+};

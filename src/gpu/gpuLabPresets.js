@@ -1,7 +1,7 @@
 import { normalizeGpuLabSettings } from './gpuLabDefaults.js';
 
 export const GPU_PRESET_KIND = 'auralith.gpu-preset';
-export const GPU_PRESET_VERSION = 2;
+export const GPU_PRESET_VERSION = 3;
 
 const cleanText = (value, fallback, max = 80) => {
   const text = String(value ?? '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().replace(/\s+/g, ' ');
@@ -23,46 +23,68 @@ const builtIn = (id, name, description, settings) => Object.freeze({
   settings: Object.freeze(normalizeGpuLabSettings(settings))
 });
 
+const feedbackOff = { enabled: false, amount: 0.42, decay: 0.9, scale: 0.985, rotation: 0, offsetX: 0, offsetY: 0, mirror: 'off', kaleidoscope: 0, blend: 'screen' };
+
 export const GPU_LAB_BUILTIN_PRESETS = Object.freeze([
   builtIn('golden-oracle', 'Golden Oracle', 'Balanced sacred glow, soft aperture phosphor, and clean retro signal.', {
     crt: { enabled: true, curvature: 0.08, scanlineIntensity: 0.16, scanlineCount: 720, chromaticAberration: 1.2, vignette: 0.22, noise: 0.012 },
     bloom: { enabled: true, strength: 0.34, radius: 0.24, threshold: 0.62 },
-    display: { scanlineSoftness: 0.72, phosphorMask: 'aperture', phosphorStrength: 0.12, ghosting: 0.02, ghostOffset: 2.5, brightness: 1.08, blackCrush: 0.02, highlightRolloff: 0.22 }
+    display: { scanlineSoftness: 0.72, phosphorMask: 'aperture', phosphorStrength: 0.12, ghosting: 0.02, ghostOffset: 2.5, brightness: 1.08, blackCrush: 0.02, highlightRolloff: 0.22 },
+    feedback: feedbackOff
   }),
   builtIn('cathedral-resonance', 'Cathedral Resonance', 'The high-energy concentric broadcast discovered during the first live GPU session.', {
     crt: { enabled: true, curvature: 0.08, scanlineIntensity: 0.54, scanlineCount: 1980, chromaticAberration: 1.2, vignette: 0.22, noise: 0.082 },
     bloom: { enabled: true, strength: 2.12, radius: 0.95, threshold: 0.62 },
-    display: { scanlineSoftness: 0.34, phosphorMask: 'slot', phosphorStrength: 0.24, ghosting: 0.12, ghostOffset: 3.5, brightness: 1.12, blackCrush: 0.06, highlightRolloff: 0.35 }
+    display: { scanlineSoftness: 0.34, phosphorMask: 'slot', phosphorStrength: 0.24, ghosting: 0.12, ghostOffset: 3.5, brightness: 1.12, blackCrush: 0.06, highlightRolloff: 0.35 },
+    feedback: { enabled: true, amount: 0.18, decay: 0.82, scale: 0.994, rotation: 0.12, offsetX: 0, offsetY: 0, mirror: 'off', kaleidoscope: 0, blend: 'screen' }
   }),
-  builtIn('haunted-broadcast', 'Haunted Broadcast', 'Crushed shadows, restless echo, and an unstable late-night transmission.', {
+  builtIn('haunted-broadcast', 'Haunted Broadcast', 'Crushed shadows, recursive echo, and an unstable late-night transmission.', {
     crt: { enabled: true, curvature: 0.13, scanlineIntensity: 0.42, scanlineCount: 1440, chromaticAberration: 2.1, vignette: 0.48, noise: 0.055 },
     bloom: { enabled: true, strength: 0.28, radius: 0.18, threshold: 0.74 },
-    display: { scanlineSoftness: 0.18, phosphorMask: 'slot', phosphorStrength: 0.3, ghosting: 0.35, ghostOffset: 6, brightness: 0.9, blackCrush: 0.15, highlightRolloff: 0.1 }
+    display: { scanlineSoftness: 0.18, phosphorMask: 'slot', phosphorStrength: 0.3, ghosting: 0.35, ghostOffset: 6, brightness: 0.9, blackCrush: 0.15, highlightRolloff: 0.1 },
+    feedback: { enabled: true, amount: 0.28, decay: 0.86, scale: 1.008, rotation: -0.22, offsetX: 3, offsetY: 0, mirror: 'x', kaleidoscope: 0, blend: 'add' }
   }),
-  builtIn('vhs-revelation', 'VHS Revelation', 'Soft analog glow with pronounced color separation, ghosting, and signal grain.', {
+  builtIn('vhs-revelation', 'VHS Revelation', 'Soft analog glow with pronounced color separation, ghosting, and signal memory.', {
     crt: { enabled: true, curvature: 0.1, scanlineIntensity: 0.27, scanlineCount: 900, chromaticAberration: 3.2, vignette: 0.3, noise: 0.035 },
     bloom: { enabled: true, strength: 0.58, radius: 0.4, threshold: 0.58 },
-    display: { scanlineSoftness: 0.78, phosphorMask: 'aperture', phosphorStrength: 0.18, ghosting: 0.28, ghostOffset: 5, brightness: 1.05, blackCrush: 0.04, highlightRolloff: 0.2 }
+    display: { scanlineSoftness: 0.78, phosphorMask: 'aperture', phosphorStrength: 0.18, ghosting: 0.28, ghostOffset: 5, brightness: 1.05, blackCrush: 0.04, highlightRolloff: 0.2 },
+    feedback: { enabled: true, amount: 0.2, decay: 0.8, scale: 1, rotation: 0, offsetX: 5, offsetY: 1, mirror: 'off', kaleidoscope: 0, blend: 'mix' }
   }),
   builtIn('arcade-ascension', 'Arcade Ascension', 'Bright triad phosphor energy with a crisp cabinet-screen presence.', {
     crt: { enabled: true, curvature: 0.06, scanlineIntensity: 0.22, scanlineCount: 1080, chromaticAberration: 0.8, vignette: 0.14, noise: 0.006 },
     bloom: { enabled: true, strength: 0.72, radius: 0.3, threshold: 0.52 },
-    display: { scanlineSoftness: 0.28, phosphorMask: 'triad', phosphorStrength: 0.35, ghosting: 0.05, ghostOffset: 2, brightness: 1.12, blackCrush: 0.03, highlightRolloff: 0.12 }
+    display: { scanlineSoftness: 0.28, phosphorMask: 'triad', phosphorStrength: 0.35, ghosting: 0.05, ghostOffset: 2, brightness: 1.12, blackCrush: 0.03, highlightRolloff: 0.12 },
+    feedback: feedbackOff
   }),
   builtIn('solar-relic', 'Solar Relic', 'Hot highlights, controlled rolloff, and broad luminous spill for radiant artifacts.', {
     crt: { enabled: true, curvature: 0.05, scanlineIntensity: 0.12, scanlineCount: 600, chromaticAberration: 1.5, vignette: 0.18, noise: 0.009 },
     bloom: { enabled: true, strength: 1.45, radius: 0.7, threshold: 0.44 },
-    display: { scanlineSoftness: 0.86, phosphorMask: 'aperture', phosphorStrength: 0.08, ghosting: 0.03, ghostOffset: 2, brightness: 1.18, blackCrush: 0.01, highlightRolloff: 0.55 }
+    display: { scanlineSoftness: 0.86, phosphorMask: 'aperture', phosphorStrength: 0.08, ghosting: 0.03, ghostOffset: 2, brightness: 1.18, blackCrush: 0.01, highlightRolloff: 0.55 },
+    feedback: { enabled: true, amount: 0.12, decay: 0.76, scale: 0.99, rotation: 0, offsetX: 0, offsetY: -1, mirror: 'off', kaleidoscope: 0, blend: 'screen' }
   }),
-  builtIn('phosphor-dream', 'Phosphor Dream', 'Gentle aperture texture, soft scanlines, and a dreamlike halo.', {
+  builtIn('phosphor-dream', 'Phosphor Dream', 'Gentle aperture texture, soft scanlines, and a dreamlike memory halo.', {
     crt: { enabled: true, curvature: 0.045, scanlineIntensity: 0.1, scanlineCount: 840, chromaticAberration: 0.5, vignette: 0.12, noise: 0.004 },
     bloom: { enabled: true, strength: 0.42, radius: 0.52, threshold: 0.64 },
-    display: { scanlineSoftness: 0.92, phosphorMask: 'aperture', phosphorStrength: 0.26, ghosting: 0.1, ghostOffset: 2.5, brightness: 1.08, blackCrush: 0, highlightRolloff: 0.3 }
+    display: { scanlineSoftness: 0.92, phosphorMask: 'aperture', phosphorStrength: 0.26, ghosting: 0.1, ghostOffset: 2.5, brightness: 1.08, blackCrush: 0, highlightRolloff: 0.3 },
+    feedback: { enabled: true, amount: 0.16, decay: 0.88, scale: 0.998, rotation: 0.08, offsetX: 0, offsetY: 0, mirror: 'off', kaleidoscope: 0, blend: 'screen' }
   }),
-  builtIn('temple-transmission', 'Temple Transmission', 'Dense slot-mask scanlines with a controlled ritual echo and central glow.', {
+  builtIn('temple-transmission', 'Temple Transmission', 'Dense slot-mask scanlines with a ritual echo and six-fold signal chamber.', {
     crt: { enabled: true, curvature: 0.11, scanlineIntensity: 0.36, scanlineCount: 1680, chromaticAberration: 1.4, vignette: 0.34, noise: 0.028 },
     bloom: { enabled: true, strength: 0.95, radius: 0.56, threshold: 0.6 },
-    display: { scanlineSoftness: 0.2, phosphorMask: 'slot', phosphorStrength: 0.32, ghosting: 0.18, ghostOffset: 4, brightness: 1, blackCrush: 0.1, highlightRolloff: 0.2 }
+    display: { scanlineSoftness: 0.2, phosphorMask: 'slot', phosphorStrength: 0.32, ghosting: 0.18, ghostOffset: 4, brightness: 1, blackCrush: 0.1, highlightRolloff: 0.2 },
+    feedback: { enabled: true, amount: 0.24, decay: 0.86, scale: 0.988, rotation: 0.18, offsetX: 0, offsetY: 0, mirror: 'quad', kaleidoscope: 6, blend: 'screen' }
+  }),
+  builtIn('infinite-cathedral', 'Infinite Cathedral', 'Deep recursive zoom, six-fold folding, and luminous architectural recursion.', {
+    crt: { enabled: true, curvature: 0.09, scanlineIntensity: 0.28, scanlineCount: 1440, chromaticAberration: 1.1, vignette: 0.28, noise: 0.018 },
+    bloom: { enabled: true, strength: 1.25, radius: 0.72, threshold: 0.55 },
+    display: { scanlineSoftness: 0.42, phosphorMask: 'slot', phosphorStrength: 0.2, ghosting: 0.08, ghostOffset: 3, brightness: 1.08, blackCrush: 0.05, highlightRolloff: 0.48 },
+    feedback: { enabled: true, amount: 0.7, decay: 0.93, scale: 0.972, rotation: 0.42, offsetX: 0, offsetY: 0, mirror: 'quad', kaleidoscope: 6, blend: 'screen' }
+  }),
+  builtIn('mirror-shrine', 'Mirror Shrine', 'Eight-fold mirrored recursion with a slower inward signal drift.', {
+    crt: { enabled: true, curvature: 0.07, scanlineIntensity: 0.2, scanlineCount: 1080, chromaticAberration: 1.6, vignette: 0.24, noise: 0.012 },
+    bloom: { enabled: true, strength: 0.78, radius: 0.5, threshold: 0.6 },
+    display: { scanlineSoftness: 0.56, phosphorMask: 'triad', phosphorStrength: 0.18, ghosting: 0.06, ghostOffset: 2.5, brightness: 1.04, blackCrush: 0.04, highlightRolloff: 0.36 },
+    feedback: { enabled: true, amount: 0.56, decay: 0.9, scale: 1.012, rotation: -0.32, offsetX: 0, offsetY: 0, mirror: 'quad', kaleidoscope: 8, blend: 'mix' }
   })
 ]);
 

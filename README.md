@@ -105,9 +105,9 @@ Full workflow screenshots are the next documentation pass. The live demo is the 
 
 The infographic summarizes the alpha feature set, project format, validation flow, deployment status, and next planned evolutions.
 
-## GPU Cartridge Bay (v0.3.0-alpha)
+## GPU Cartridge Bay and Feedback Chamber (v0.5.0-alpha)
 
-GPU Lab v0.2 adds a local visual-cartridge workflow: eight built-in signal presets, custom save/update/clone/rename/delete, favorites, JSON import/export, bypass and hold-original comparison, and project/receipt/manifest persistence. The first-session high-energy settings are preserved as the built-in **Cathedral Resonance** cartridge. Canvas 2D remains authoritative.
+GPU Lab v0.4 adds ten local signal cartridges, Display Physics, and a true ping-pong Feedback Chamber with recursive decay, zoom, rotation, offset, mirror, kaleidoscope, blend, and safe frame-buffer clearing. Custom cartridges, JSON import/export, comparison, recovery, receipts, and manifests preserve the full parameter state. Canvas 2D remains authoritative.
 
 ## GPU Display Physics (v0.4.0-alpha)
 

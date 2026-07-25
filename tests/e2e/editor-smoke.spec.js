@@ -194,7 +194,7 @@ test('GPU Lab exposes a live WebGL2 preview or a clean fallback', async ({ page,
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText(/GPU Lab v0\.3/).first()).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
 
   const capability = page.getByTestId('gpu-capability');
   await expect(capability).not.toContainText('Checking WebGL2', { timeout: 12_000 });
@@ -226,7 +226,7 @@ test('GPU Cartridge Bay loads, saves, persists, and exports presets', async ({ p
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText(/GPU Lab v0\.3/).first()).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
 
   const select = page.getByTestId('gpu-preset-select');
   await select.selectOption('builtin:cathedral-resonance');
@@ -255,7 +255,7 @@ test('GPU Display Physics controls cartridges and live settings', async ({ page 
   const errors = collectPageErrors(page);
   await page.goto('./');
   await page.getByRole('button', { name: 'gpu', exact: true }).click();
-  await expect(page.getByText(/GPU Lab v0\.3/).first()).toBeVisible();
+  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
   await expect(page.getByTestId('gpu-display-physics')).toBeVisible();
 
   await page.getByTestId('gpu-preset-select').selectOption('builtin:cathedral-resonance');
@@ -267,6 +267,27 @@ test('GPU Display Physics controls cartridges and live settings', async ({ page 
   await expect(page.getByText('Brightness Comp', { exact: true })).toBeVisible();
   await expect(page.getByText('Black Crush', { exact: true })).toBeVisible();
   await expect(page.getByText('Highlight Rolloff', { exact: true })).toBeVisible();
+  await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+
+test('GPU Feedback Chamber exposes recursive controls and safe clearing', async ({ page }) => {
+  const errors = collectPageErrors(page);
+  await page.goto('./');
+  await page.getByRole('button', { name: 'gpu', exact: true }).click();
+  await expect(page.getByText(/GPU Lab v0\.4/).first()).toBeVisible();
+  await expect(page.getByTestId('gpu-feedback-chamber')).toBeVisible();
+
+  await page.getByTestId('gpu-preset-select').selectOption('builtin:infinite-cathedral');
+  await expect(page.getByRole('button', { name: 'Feedback On', exact: true })).toBeVisible();
+  await expect(page.getByTestId('gpu-feedback-mirror')).toHaveValue('quad');
+  await expect(page.getByTestId('gpu-feedback-blend')).toHaveValue('screen');
+
+  await page.getByTestId('gpu-feedback-mirror').selectOption('x');
+  await expect(page.getByTestId('gpu-active-preset')).toContainText('modified');
+  await page.getByText('Clear Frame', { exact: true }).click();
+  await expect(page.getByText('Feedback buffer cleared', { exact: true })).toBeVisible();
   await expect(page.getByText('Auralith369 runtime error')).toHaveCount(0);
   expect(errors).toEqual([]);
 });

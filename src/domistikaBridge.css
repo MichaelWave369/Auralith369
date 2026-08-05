@@ -1,0 +1,373 @@
+.domistika-bridge-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.16;
+  filter: saturate(1.15) contrast(1.05);
+  mix-blend-mode: screen;
+}
+
+.domistika-bridge-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at center, transparent 22%, rgba(5, 9, 16, 0.5) 72%),
+    linear-gradient(rgba(5, 9, 16, 0.2), rgba(5, 9, 16, 0.72));
+}
+
+.domistika-bridge-modal-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(2, 4, 10, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.domistika-bridge-modal {
+  width: min(900px, 96vw);
+  max-height: 92vh;
+  overflow: auto;
+  color: #e2e8f0;
+  border: 2px solid #00d4aa;
+  border-radius: 6px;
+  background:
+    linear-gradient(rgba(9, 14, 27, 0.97), rgba(5, 9, 16, 0.98)),
+    repeating-linear-gradient(90deg, transparent 0 31px, rgba(0, 212, 170, 0.045) 31px 32px),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(139, 92, 246, 0.04) 31px 32px);
+  box-shadow:
+    inset 0 0 0 2px #121a2f,
+    inset 0 0 0 4px #050910,
+    0 28px 100px rgba(0, 0, 0, 0.85),
+    0 0 36px rgba(0, 212, 170, 0.16);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.domistika-bridge-modal > header {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #26355f;
+  background: linear-gradient(#121b3a, #090e1b);
+}
+
+.domistika-bridge-mark {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  color: #f5c542;
+  border: 2px solid #8b5cf6;
+  border-radius: 5px;
+  background: linear-gradient(135deg, #172249, #090e1b);
+  box-shadow:
+    inset 1px 1px rgba(255, 255, 255, 0.14),
+    inset -2px -2px rgba(0, 0, 0, 0.75),
+    0 0 18px rgba(139, 92, 246, 0.24);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  text-shadow: 1px 1px #000;
+}
+
+.domistika-bridge-kicker {
+  display: block;
+  margin-bottom: 5px;
+  color: #00d4aa;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.domistika-bridge-modal h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(20px, 3vw, 34px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  text-shadow: 2px 2px #000, 0 0 12px rgba(125, 211, 252, 0.2);
+}
+
+.domistika-bridge-modal header p {
+  margin: 7px 0 0;
+  color: #8fa6cc;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.domistika-bridge-close {
+  width: 36px;
+  height: 36px;
+  color: #e2e8f0;
+  border: 1px solid #344777;
+  border-radius: 4px;
+  background: linear-gradient(#172249, #0b1120);
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.1), inset -2px -2px rgba(0, 0, 0, 0.72);
+  cursor: pointer;
+}
+
+.domistika-bridge-body {
+  display: grid;
+  grid-template-columns: minmax(260px, 1.08fr) minmax(240px, 0.92fr);
+  gap: 16px;
+  padding: 18px;
+}
+
+.domistika-bridge-preview {
+  display: grid;
+  place-items: center;
+  min-height: 330px;
+  overflow: hidden;
+  border: 1px solid #26355f;
+  border-radius: 5px;
+  background: #02040a;
+  box-shadow: inset 0 0 0 2px #090e1b;
+}
+
+.domistika-bridge-preview img {
+  display: block;
+  width: 100%;
+  max-height: 58vh;
+  object-fit: contain;
+}
+
+.domistika-bridge-info {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+}
+
+.domistika-bridge-info dl {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+}
+
+.domistika-bridge-info dl > div {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 1px solid #1d2a4b;
+  border-radius: 4px;
+  background: #0b1120;
+}
+
+.domistika-bridge-info dt {
+  color: #7085a8;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.domistika-bridge-info dd {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.domistika-bridge-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 11px;
+  border: 1px solid #26355f;
+  border-radius: 4px;
+  background: #080d1a;
+}
+
+.domistika-bridge-palette span {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.32);
+  border-radius: 3px;
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.2), inset -2px -2px rgba(0, 0, 0, 0.5);
+}
+
+.domistika-bridge-note {
+  margin: 0;
+  padding: 11px;
+  color: #7dd3fc;
+  border-left: 3px solid #00d4aa;
+  background: rgba(0, 212, 170, 0.06);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.domistika-bridge-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0 18px 18px;
+}
+
+.domistika-bridge-actions button,
+.domistika-bridge-reference button,
+.domistika-bridge-reopen {
+  min-height: 36px;
+  padding: 8px 11px;
+  color: #dce8ff;
+  border: 1px solid #344777;
+  border-radius: 4px;
+  background: linear-gradient(#172249, #0b1120);
+  box-shadow:
+    inset 1px 1px rgba(255, 255, 255, 0.12),
+    inset -2px -2px rgba(0, 0, 0, 0.72),
+    1px 1px #02040a;
+  font: inherit;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.domistika-bridge-actions button:hover,
+.domistika-bridge-reference button:hover,
+.domistika-bridge-reopen:hover {
+  color: #fff;
+  border-color: #00d4aa;
+  background: linear-gradient(#1b2c5a, #10182e);
+}
+
+.domistika-bridge-actions button.primary {
+  color: #06100d;
+  border-color: #00d4aa;
+  background: linear-gradient(#4ff2d1, #00a886);
+  font-weight: 900;
+}
+
+.domistika-bridge-actions button.danger {
+  margin-left: auto;
+  color: #ffd8df;
+  border-color: #8f3548;
+  background: linear-gradient(#63283a, #2d1320);
+}
+
+.domistika-bridge-reference {
+  position: fixed;
+  top: 72px;
+  right: 18px;
+  z-index: 4100;
+  width: min(340px, 38vw);
+  max-height: calc(100vh - 96px);
+  overflow: auto;
+  border: 2px solid #00d4aa;
+  border-radius: 5px;
+  background: #090e1b;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.72), 0 0 24px rgba(0, 212, 170, 0.16);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.domistika-bridge-reference-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  border-bottom: 1px solid #26355f;
+  background: #121b3a;
+}
+
+.domistika-bridge-reference-head strong {
+  display: block;
+  color: #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.domistika-bridge-reference-head small {
+  display: block;
+  margin-top: 2px;
+  color: #7dd3fc;
+  font-size: 8px;
+}
+
+.domistika-bridge-reference-head button {
+  min-width: 31px;
+  min-height: 31px;
+  padding: 4px;
+}
+
+.domistika-bridge-reference img {
+  display: block;
+  width: 100%;
+  max-height: 56vh;
+  object-fit: contain;
+  background: #02040a;
+}
+
+.domistika-bridge-reference-actions {
+  display: flex;
+  gap: 7px;
+  padding: 9px;
+}
+
+.domistika-bridge-reopen {
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3900;
+  min-width: 48px;
+  color: #f5c542;
+  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #24184d, #10182e);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  box-shadow: inset 1px 1px rgba(255, 255, 255, 0.12), inset -2px -2px #02040a, 0 0 16px rgba(139, 92, 246, 0.3);
+}
+
+@media (max-width: 760px) {
+  .domistika-bridge-modal > header {
+    grid-template-columns: 48px 1fr auto;
+    padding: 12px;
+  }
+
+  .domistika-bridge-mark {
+    width: 44px;
+    height: 44px;
+    font-size: 12px;
+  }
+
+  .domistika-bridge-body {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .domistika-bridge-preview {
+    min-height: 220px;
+  }
+
+  .domistika-bridge-actions {
+    padding: 0 12px 12px;
+  }
+
+  .domistika-bridge-actions button {
+    flex: 1 1 45%;
+  }
+
+  .domistika-bridge-actions button.danger {
+    margin-left: 0;
+  }
+
+  .domistika-bridge-reference {
+    top: 10px;
+    right: 10px;
+    width: min(360px, calc(100vw - 20px));
+    max-height: calc(100vh - 20px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .domistika-bridge-modal-wrap {
+    backdrop-filter: none;
+  }
+}

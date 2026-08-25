@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { verifyCreativeBridgeV1 } from './parallaxBridgeAdapter.js';
 import './domistikaBridge.css';
 
 const BRIDGE_KEY = 'parallax-creative-bridge-v1';
 const DOMISTIKA_URL = 'https://michaelwave369.github.io/Domistika/';
 
-function readBridge() {
+function readBridgeCandidate() {
   try {
     const payload = JSON.parse(localStorage.getItem(BRIDGE_KEY));
     if (payload?.protocol !== 'parallax-creative-bridge') return null;
@@ -30,23 +31,37 @@ function downloadArtwork(payload) {
 }
 
 export default function DomistikaBridgeReceiver() {
-  const [payload, setPayload] = useState(() => readBridge());
-  const [open, setOpen] = useState(() => location.hash === '#domistika-import' && Boolean(readBridge()));
+  const [payload, setPayload] = useState(null);
+  const [open, setOpen] = useState(false);
   const [referenceVisible, setReferenceVisible] = useState(false);
   const [backdropVisible, setBackdropVisible] = useState(false);
   const palette = useMemo(() => Array.isArray(payload?.palette) ? payload.palette.slice(0, 24) : [], [payload]);
 
   useEffect(() => {
-    const receive = () => {
-      const next = readBridge();
-      if (!next) return;
-      setPayload(next);
-      setOpen(true);
-      window.dispatchEvent(new CustomEvent('auralith:domistika-bridge', { detail: next }));
+    const receive = async () => {
+      const next = readBridgeCandidate();
+      if (!next) return null;
+      try {
+        await verifyCreativeBridgeV1(next);
+        setPayload(next);
+        setOpen(true);
+        window.dispatchEvent(new CustomEvent('auralith:domistika-bridge', { detail: next }));
+        return next;
+      } catch (error) {
+        setPayload(null);
+        setOpen(false);
+        setReferenceVisible(false);
+        setBackdropVisible(false);
+        window.dispatchEvent(new CustomEvent('auralith:domistika-bridge-rejected', {
+          detail: { reason: String(error) },
+        }));
+        console.warn('Auralith rejected Domistika bridge integrity check', error);
+        return null;
+      }
     };
-    if (location.hash === '#domistika-import') receive();
-    const onStorage = (event) => { if (event.key === BRIDGE_KEY) receive(); };
-    const onHash = () => { if (location.hash === '#domistika-import') receive(); };
+    if (location.hash === '#domistika-import') void receive();
+    const onStorage = (event) => { if (event.key === BRIDGE_KEY) void receive(); };
+    const onHash = () => { if (location.hash === '#domistika-import') void receive(); };
     window.addEventListener('storage', onStorage);
     window.addEventListener('hashchange', onHash);
     window.auralithDomistikaBridge = {
@@ -58,7 +73,12 @@ export default function DomistikaBridgeReceiver() {
         setReferenceVisible(false);
         setBackdropVisible(false);
       },
-      get: () => readBridge(),
+      get: async () => {
+        const next = readBridgeCandidate();
+        if (!next) return null;
+        await verifyCreativeBridgeV1(next);
+        return next;
+      },
     };
     return () => {
       window.removeEventListener('storage', onStorage);
@@ -134,7 +154,7 @@ export default function DomistikaBridgeReceiver() {
                     {palette.map((color) => <span key={color} title={color} style={{ backgroundColor: color }} />)}
                   </div>
                 )}
-                <p className="domistika-bridge-note">The image and metadata came through same-origin browser storage. Nothing was uploaded by the bridge.</p>
+                <p className="domistika-bridge-note">The image and metadata came through same-origin browser storage and passed a local SHA-256 integrity check. Nothing was uploaded by the bridge.</p>
               </div>
             </div>
 

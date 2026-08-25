@@ -4,7 +4,7 @@ import test from 'node:test';
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
-test('Domistika bridge receiver is mounted and local-first', async () => {
+test('Domistika bridge receiver is mounted, local-first, and integrity-gated', async () => {
   const [app, receiver, styles] = await Promise.all([
     read('src/App.jsx'),
     read('src/DomistikaBridgeReceiver.jsx'),
@@ -15,8 +15,11 @@ test('Domistika bridge receiver is mounted and local-first', async () => {
   assert.match(receiver, /parallax-creative-bridge-v1/);
   assert.match(receiver, /source !== 'domistika'/);
   assert.match(receiver, /target !== 'auralith369'/);
+  assert.match(receiver, /verifyCreativeBridgeV1/);
+  assert.match(receiver, /auralith:domistika-bridge-rejected/);
   assert.match(receiver, /Use as floating reference/);
   assert.match(receiver, /Use as workspace backdrop/);
+  assert.match(receiver, /passed a local SHA-256 integrity check/);
   assert.match(receiver, /Nothing was uploaded by the bridge/);
   assert.match(receiver, /auralith:domistika-bridge/);
   assert.match(styles, /domistika-bridge-modal/);

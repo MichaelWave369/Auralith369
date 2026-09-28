@@ -1,4 +1,4 @@
-// Auralith369 v0.6.0-alpha — local-first visual alchemy by PHI369 Labs
+// Auralith369 v0.7.0-alpha — local-first visual alchemy by PHI369 Labs
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
@@ -10,8 +10,9 @@ import GpuLabPreview from "./gpu/GpuLabPreview.jsx";
 import { GPU_LAB_DEFAULTS, normalizeGpuLabProjectState, normalizeGpuLabSettings } from "./gpu/gpuLabDefaults.js";
 import { GPU_LAB_BUILTIN_PRESETS, createCustomGpuPreset, findGpuPreset, parseGpuPresetText, serializeGpuPreset, updateCustomGpuPreset } from "./gpu/gpuLabPresets.js";
 import { loadCustomGpuPresets, loadGpuFavoriteIds, saveCustomGpuPresets, saveGpuFavoriteIds } from "./gpu/gpuPresetStorage.js";
+import { bindAuralithRuntime, unbindAuralithRuntime } from "./lib/auralithStableSdk.js";
 
-const APP_VERSION="v0.6.0-alpha";
+const APP_VERSION="v0.7.0-alpha";
 const PHI=1.618033988749895,LAM=0.618033988749895;
 const C={bg:"#050910",pn:"#090e1b",pa:"#0b1120",bd:"#121a2f",srf:"#0d142c",sh:"#121b3a",sa:"#172249",ac:"#00d4aa",ad:"#00a88622",ag:"#00d4aa10",gd:"#d4a017",pr:"#8b5cf6",rd:"#ef4444",bl:"#3b82f6",gn:"#10b981",cy:"#06b6d4",pk:"#ec4899",or:"#f97316",tx:"#e2e8f0",td:"#7085a8",tm:"#3a4c66",wh:"#fff",bk:"#000"};
 const FN="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace";
@@ -328,11 +329,11 @@ export default function Auralith369(){
   const applyXf=()=>{if(!xfing)return;save("Transform");const lc=ld.current[aL];if(!lc)return;const nc=document.createElement("canvas");nc.width=sz.w;nc.height=sz.h;const ctx=nc.getContext("2d");ctx.translate(sz.w/2,sz.h/2);ctx.rotate(xfA*Math.PI/180);ctx.scale(xfSc/100,xfSc/100);ctx.translate(-sz.w/2,-sz.h/2);ctx.drawImage(lc,0,0);ld.current[aL]=nc;sXfing(0);sXfA(0);sXfSc(100);comp();};
   const strokePen=()=>{if(penP.length<2)return;save("Pen");const ctx=eLC(aL).getContext("2d");ctx.save();ctx.strokeStyle=fg;ctx.lineWidth=bSz;ctx.lineCap="round";ctx.globalAlpha=bOp;ctx.beginPath();penP.forEach((p,i)=>{i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)});ctx.stroke();ctx.restore();sPenP([]);comp();};
 
-  const loadImg=(file)=>{const img=new Image();img.onload=()=>{setSz({w:img.width,h:img.height});const lc=document.createElement("canvas");lc.width=img.width;lc.height=img.height;lc.getContext("2d").drawImage(img,0,0);ld.current[1]=lc;setHasI(1);setLayers(p=>p.map(l=>l.id===1?{...l,n:file.name.split('.')[0]}:l));const oc=document.createElement("canvas");oc.width=img.width;oc.height=img.height;oc.getContext("2d").drawImage(img,0,0);origS.current=oc;setTimeout(()=>{comp();save("Open");extractDominant();},50);};img.src=URL.createObjectURL(file);};
+  const loadImg=(file)=>new Promise((resolve,reject)=>{const img=new Image(),url=URL.createObjectURL(file);img.onload=()=>{try{setSz({w:img.width,h:img.height});const lc=document.createElement("canvas");lc.width=img.width;lc.height=img.height;lc.getContext("2d").drawImage(img,0,0);ld.current[1]=lc;setHasI(1);const layerName=String(file?.name||"Auralith Image").replace(/\\.[^.]+$/,"");setLayers(p=>p.map(l=>l.id===1?{...l,n:layerName}:l));const oc=document.createElement("canvas");oc.width=img.width;oc.height=img.height;oc.getContext("2d").drawImage(img,0,0);origS.current=oc;setTimeout(()=>{comp();save("Open");extractDominant();},50);resolve({ok:true,name:layerName,width:img.width,height:img.height});}finally{URL.revokeObjectURL(url);}};img.onerror=error=>{URL.revokeObjectURL(url);reject(error||new Error("AURALITH_IMAGE_OPEN_FAILED"));};img.src=url;});
 
   const canvasFromURL=url=>new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=img.width;c.height=img.height;c.getContext("2d").drawImage(img,0,0);res(c);};img.onerror=rej;img.src=url;});
   const downloadBlob=(name,type,body)=>{const a=document.createElement("a"),blob=new Blob([body],{type});a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),800);};
-  const applyGpuPresetById=id=>{const preset=findGpuPreset(gpuPresets,id);if(!preset)return;gpuPreviewRef.current?.clearFeedback();setGpuSettings(normalizeGpuLabSettings(preset.settings));setActiveGpuPresetId(preset.id);setGpuPresetName(preset.name);setGpuPresetDirty(0);setGpuBypass(0);if(gpuStatus.supported!==false)setGpuEnabled(1);flash("Cartridge: "+preset.name);};
+  const applyGpuPresetById=id=>{const preset=findGpuPreset(gpuPresets,id);if(!preset)return null;gpuPreviewRef.current?.clearFeedback();setGpuSettings(normalizeGpuLabSettings(preset.settings));setActiveGpuPresetId(preset.id);setGpuPresetName(preset.name);setGpuPresetDirty(0);setGpuBypass(0);if(gpuStatus.supported!==false)setGpuEnabled(1);flash("Cartridge: "+preset.name);return {id:preset.id,name:preset.name,builtIn:!!preset.builtIn};};
   const saveGpuPresetAs=()=>{const name=window.prompt("Name this GPU cartridge",gpuPresetDirty?gpuPresetName+" Variant":gpuPresetName||"Custom Signal");if(!name?.trim())return;const preset=createCustomGpuPreset(name,gpuSettings,"Created in Auralith GPU Lab.");setCustomGpuPresets(current=>[preset,...current.filter(item=>item.id!==preset.id)]);setActiveGpuPresetId(preset.id);setGpuPresetName(preset.name);setGpuPresetDirty(0);flash("Cartridge saved");};
   const updateActiveGpuPreset=()=>{if(!activeGpuPreset||activeGpuPreset.builtIn){saveGpuPresetAs();return;}const updated=updateCustomGpuPreset(activeGpuPreset,{settings:gpuSettings});setCustomGpuPresets(current=>current.map(item=>item.id===updated.id?updated:item));setGpuPresetName(updated.name);setGpuPresetDirty(0);flash("Cartridge updated");};
   const cloneActiveGpuPreset=()=>{const source=activeGpuPreset||{name:gpuPresetName,settings:gpuSettings};const name=window.prompt("Name the cloned cartridge",(source.name||"Signal")+" Copy");if(!name?.trim())return;const preset=createCustomGpuPreset(name,source.settings,source.description||"Cloned GPU cartridge.");setCustomGpuPresets(current=>[preset,...current]);setActiveGpuPresetId(preset.id);setGpuPresetName(preset.name);setGpuPresetDirty(0);flash("Cartridge cloned");};
@@ -343,18 +344,18 @@ export default function Auralith369(){
   const importGpuCartridge=async file=>{if(!file)return;try{const preset=parseGpuPresetText(await file.text());gpuPreviewRef.current?.clearFeedback();setCustomGpuPresets(current=>[preset,...current.filter(item=>item.id!==preset.id)]);setGpuSettings(preset.settings);setActiveGpuPresetId(preset.id);setGpuPresetName(preset.name);setGpuPresetDirty(0);setGpuBypass(0);if(gpuStatus.supported!==false)setGpuEnabled(1);flash("Cartridge imported");}catch(error){console.warn("[Auralith369] GPU cartridge import rejected",error);flash(error?.message||"Cartridge import failed");}};
   const buildProjectPayload=useCallback(()=>{const layerData={},maskData={};Object.keys(ld.current).forEach(k=>{layerData[k]=ld.current[k].toDataURL("image/png")});Object.keys(mks.current).forEach(k=>{maskData[k]=mks.current[k].toDataURL("image/png")});return{kind:AURALITH_PROJECT_KIND,version:APP_VERSION,savedAt:new Date().toISOString(),constants:{PHI,LAM,Cstar:.809017,OmegaC:.376},name:projectName,size:sz,activeLayer:aL,nextId:nid.current,layers:JSON.parse(JSON.stringify(layers)),layerData,maskData,orig:origS.current?origS.current.toDataURL("image/png"):null,adjustments:adj,overlay:{id:ovl,opacity:oOp},guides,snap:{enabled:!!snapOn,tolerance:snapTol},captionTone,colors:{fg,bg:bg_},text:{txt,tF,tSz,txtFx},batches:savedBatches,versions,quickActions:quickA,dominantColors:domColors,gpuLab:{enabled:!!gpuEnabled,bypassed:!!gpuBypass,activePresetId:activeGpuPresetId,activePresetName:gpuPresetName,presetDirty:!!gpuPresetDirty,settings:normalizeGpuLabSettings(gpuSettings)}};},[projectName,sz,aL,layers,adj,ovl,oOp,guides,snapOn,snapTol,captionTone,fg,bg_,txt,tF,tSz,txtFx,savedBatches,versions,quickA,domColors,gpuEnabled,gpuBypass,activeGpuPresetId,gpuPresetName,gpuPresetDirty,gpuSettings]);
   const exportProject=async()=>{try{const project=buildProjectPayload();downloadBlob(`${projectName||"auralith369"}.auralith`,"application/json",JSON.stringify(project,null,2));await clearRecoverySnapshot().catch(error=>console.warn("[Auralith369] Recovery clear after save failed",error));setRecoverySavedAt("");flash("Project saved");}catch(e){console.error(e);flash("Project save failed");}};
-  const loadProject=async(file)=>{try{const raw=JSON.parse(await file.text());const result=validateAuralithProject(raw);if(!result.ok||!result.project){const reason=(result.errors||[]).join(" | ")||"Invalid Auralith project file.";console.warn("[Auralith369] Project import rejected",{file:file.name,errors:result.errors,warnings:result.warnings});flash(`Project load failed: ${reason}`);return;}if(result.warnings?.length){console.warn("[Auralith369] Project import warnings",{file:file.name,warnings:result.warnings});}const normalized=normalizeAuralithProject(result.project);const project={...raw,...normalized,size:{w:normalized.canvas.width,h:normalized.canvas.height}};const data={},masks={};for(const [id,url] of Object.entries(raw.layerData||{}))data[id]=await canvasFromURL(url);for(const [id,url] of Object.entries(raw.maskData||{}))masks[id]=await canvasFromURL(url);ld.current=data;mks.current=masks;origS.current=raw.orig?await canvasFromURL(raw.orig):null;setProjectName(project.title||raw.name||file.name.replace(/\.auralith$/i,""));setSz(project.size||{w:1024,h:680});setLayers(raw.layers||project.layers||[{id:1,n:"Background",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(raw.activeLayer||raw.layers?.[0]?.id||project.layers?.[0]?.id||1);nid.current=raw.nextId||Math.max(2,...((raw.layers||project.layers||[]).map(l=>Number(l.id)||1)+[1]));sAdj(raw.adjustments||{br:100,ct:100,st:100,hu:0,bl:0,temp:0});sOvl(project.overlay||raw.overlay?.id||"none");sOOp(raw.overlay?.opacity??.5);setGuides(raw.guides||[]);setSnapOn(project.snap??raw.snap?.enabled??1);setSnapTol(raw.snap?.tolerance??9);setCaptionTone(raw.captionTone||"mythic");setFg(raw.colors?.fg||"#00d4aa");setBgC(raw.colors?.bg||"#0a0e1a");sTxt(raw.text?.txt||"PHI369");sTF(raw.text?.tF||"'IBM Plex Mono',monospace");sTSz(raw.text?.tSz||36);setTxtFx(raw.text?.txtFx||{stroke:0,strokeW:2,strokeC:"#ffffff",shadow:0,shadowB:4,gradient:0});setSavedBatches(raw.batches||[]);setVersions(raw.versions||[]);setQuickA(raw.quickActions||[]);setDomColors(raw.dominantColors||[]);const gpuProject=normalizeGpuLabProjectState(raw.gpuLab);setGpuEnabled(gpuProject.enabled?1:0);setGpuSettings(gpuProject.settings);setGpuBypass(raw.gpuLab?.bypassed?1:0);setActiveGpuPresetId(String(raw.gpuLab?.activePresetId||""));setGpuPresetName(String(raw.gpuLab?.activePresetName||"Custom Signal"));setGpuPresetDirty(raw.gpuLab?.presetDirty?1:0);setHasI(1);sHist([]);sHP(-1);sHNm([]);setTimeout(()=>{save("Open Project");extractDominant();},80);flash("Project loaded");}catch(e){console.warn("[Auralith369] Project import parse failure",{file:file.name,error:e});flash("Project load failed: file is not valid JSON.");}};
+  const loadProject=async(file)=>{try{const raw=JSON.parse(await file.text());const result=validateAuralithProject(raw);if(!result.ok||!result.project){const reason=(result.errors||[]).join(" | ")||"Invalid Auralith project file.";console.warn("[Auralith369] Project import rejected",{file:file.name,errors:result.errors,warnings:result.warnings});flash(`Project load failed: ${reason}`);return;}if(result.warnings?.length){console.warn("[Auralith369] Project import warnings",{file:file.name,warnings:result.warnings});}const normalized=normalizeAuralithProject(result.project);const project={...raw,...normalized,size:{w:normalized.canvas.width,h:normalized.canvas.height}};const data={},masks={};for(const [id,url] of Object.entries(raw.layerData||{}))data[id]=await canvasFromURL(url);for(const [id,url] of Object.entries(raw.maskData||{}))masks[id]=await canvasFromURL(url);ld.current=data;mks.current=masks;origS.current=raw.orig?await canvasFromURL(raw.orig):null;setProjectName(project.title||raw.name||file.name.replace(/\.auralith$/i,""));setSz(project.size||{w:1024,h:680});setLayers(raw.layers||project.layers||[{id:1,n:"Background",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(raw.activeLayer||raw.layers?.[0]?.id||project.layers?.[0]?.id||1);nid.current=raw.nextId||Math.max(2,...((raw.layers||project.layers||[]).map(l=>Number(l.id)||1)+[1]));sAdj(raw.adjustments||{br:100,ct:100,st:100,hu:0,bl:0,temp:0});sOvl(project.overlay||raw.overlay?.id||"none");sOOp(raw.overlay?.opacity??.5);setGuides(raw.guides||[]);setSnapOn(project.snap??raw.snap?.enabled??1);setSnapTol(raw.snap?.tolerance??9);setCaptionTone(raw.captionTone||"mythic");setFg(raw.colors?.fg||"#00d4aa");setBgC(raw.colors?.bg||"#0a0e1a");sTxt(raw.text?.txt||"PHI369");sTF(raw.text?.tF||"'IBM Plex Mono',monospace");sTSz(raw.text?.tSz||36);setTxtFx(raw.text?.txtFx||{stroke:0,strokeW:2,strokeC:"#ffffff",shadow:0,shadowB:4,gradient:0});setSavedBatches(raw.batches||[]);setVersions(raw.versions||[]);setQuickA(raw.quickActions||[]);setDomColors(raw.dominantColors||[]);const gpuProject=normalizeGpuLabProjectState(raw.gpuLab);setGpuEnabled(gpuProject.enabled?1:0);setGpuSettings(gpuProject.settings);setGpuBypass(raw.gpuLab?.bypassed?1:0);setActiveGpuPresetId(String(raw.gpuLab?.activePresetId||""));setGpuPresetName(String(raw.gpuLab?.activePresetName||"Custom Signal"));setGpuPresetDirty(raw.gpuLab?.presetDirty?1:0);setHasI(1);sHist([]);sHP(-1);sHNm([]);setTimeout(()=>{save("Open Project");extractDominant();},80);flash("Project loaded");return true;}catch(e){console.warn("[Auralith369] Project import parse failure",{file:file.name,error:e});flash("Project load failed: file is not valid JSON.");return false;}};
   const restoreRecovery=async()=>{if(!recoveryCandidate)return;const file=new File([JSON.stringify(recoveryCandidate.project)],"Recovered Session.auralith",{type:"application/json"});setRecoveryCandidate(null);await loadProject(file);flash("Session recovered");};
   const discardRecovery=async()=>{await clearRecoverySnapshot().catch(error=>console.warn("[Auralith369] Recovery discard failed",error));setRecoveryCandidate(null);setRecoverySavedAt("");flash("Recovery discarded");};
   const openAsset=file=>{if(!file)return;if(/\.auralith$/i.test(file.name)||file.type==="application/json")loadProject(file);else loadImg(file);};
   const applyStyleCard=card=>{setProjectName(p=>p||card.id);if(card.fg)setFg(card.fg);if(card.bg)setBgC(card.bg);if(card.adj)sAdj(card.adj);if(card.ovl)sOvl(card.ovl);if(card.oOp)sOOp(card.oOp);const lut=LUTS.find(l=>l.n===card.lut),gm=GRAD_MAPS.find(g=>g.n===card.grad),pl=PLUGINS.find(p=>p.name===card.plugin);setTimeout(()=>{if(lut)applyLUT(lut);if(gm)applyGradMap(gm);if(pl)applyPlugin(pl);comp();},20);flash("Style: "+card.n);};
   const forgePoster=pr=>{const old=renderCompositeCanvas({checker:0,background:bg_});save("Poster Forge");const c=document.createElement("canvas");c.width=pr.w;c.height=pr.h;const x=c.getContext("2d");const grd=x.createLinearGradient(0,0,pr.w,pr.h);grd.addColorStop(0,bg_);grd.addColorStop(.62,"#090e1b");grd.addColorStop(1,"#0d142c");x.fillStyle=grd;x.fillRect(0,0,pr.w,pr.h);const margin=Math.round(Math.min(pr.w,pr.h)*.08),capH=Math.round(pr.h*.72),sc=Math.min((pr.w-margin*2)/old.width,capH/old.height),dw=old.width*sc,dh=old.height*sc,dx=(pr.w-dw)/2,dy=Math.round(pr.h*LAM*.42-dh/2);x.shadowColor="#00000088";x.shadowBlur=24;x.drawImage(old,dx,Math.max(margin*1.3,dy),dw,dh);x.shadowBlur=0;x.strokeStyle=fg;x.globalAlpha=.45;x.lineWidth=2;x.strokeRect(margin,margin,pr.w-margin*2,pr.h-margin*2);x.globalAlpha=.18;[LAM*LAM,LAM,1-LAM*LAM].forEach(f=>{x.beginPath();x.moveTo(pr.w*f,margin);x.lineTo(pr.w*f,pr.h-margin);x.stroke();});x.globalAlpha=1;x.fillStyle=fg;x.font=`700 ${Math.round(pr.w*.055)}px ${FN}`;x.fillText(posterTitle||"PHI369",margin,pr.h-margin*1.55);x.fillStyle=C.tx;x.font=`${Math.round(pr.w*.022)}px ${FN}`;x.fillText(posterSub||"Sovereign image alchemy",margin,pr.h-margin*.9);x.fillStyle=C.tm;x.font=`${Math.round(pr.w*.015)}px ${FN}`;x.textAlign="right";x.fillText(`Φ=${PHI.toFixed(3)} · 369 · ${APP_VERSION}`,pr.w-margin,pr.h-margin*.9);ld.current={1:c};mks.current={};origS.current=null;setSz({w:pr.w,h:pr.h});setLayers([{id:1,n:`Poster Forge · ${pr.n}`,vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setGuides([{type:"h",pos:Math.round(pr.h*LAM)},{type:"v",pos:Math.round(pr.w*LAM)}]);sOvl("phi");sOOp(.35);setTimeout(comp,60);flash(`Poster: ${pr.n}`);};
   const hashText=async s=>{const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");};
-  const exportReceipt=async()=>{try{const image=renderCompositeCanvas({checker:0,background:eF==="JPEG"?"#fff":null}).toDataURL("image/png"),imageHash=await hashText(image),payload={kind:"auralith.receipt",version:APP_VERSION,createdAt:new Date().toISOString(),projectName,size:sz,constants:{PHI,LAM,Cstar:.809017,OmegaC:.376},imageHash,layers:layers.map(l=>({id:l.id,name:l.n,visible:!!l.vis,opacity:l.op,blend:l.bl,mask:!!l.mask,blendIf:[l.biLo,l.biHi],fx:l.fx})),adjustments:adj,overlay:{id:ovl,opacity:oOp},gpuLab:{enabled:!!gpuEnabled,bypassed:!!gpuBypass,activePresetId:activeGpuPresetId,activePresetName:gpuPresetName,presetDirty:!!gpuPresetDirty,settings:normalizeGpuLabSettings(gpuSettings)},history:hNm.slice(-36),export:{format:eF,quality:eQ}};payload.receiptId=await hashText(JSON.stringify(payload));setLastReceipt(payload);downloadBlob(`${projectName||"auralith369"}.auralith-receipt.json`,"application/json",JSON.stringify(payload,null,2));flash("Receipt exported");}catch(e){console.error(e);flash("Receipt failed");}};
+  const exportReceipt=async()=>{try{const image=renderCompositeCanvas({checker:0,background:eF==="JPEG"?"#fff":null}).toDataURL("image/png"),imageHash=await hashText(image),payload={kind:"auralith.receipt",version:APP_VERSION,createdAt:new Date().toISOString(),projectName,size:sz,constants:{PHI,LAM,Cstar:.809017,OmegaC:.376},imageHash,layers:layers.map(l=>({id:l.id,name:l.n,visible:!!l.vis,opacity:l.op,blend:l.bl,mask:!!l.mask,blendIf:[l.biLo,l.biHi],fx:l.fx})),adjustments:adj,overlay:{id:ovl,opacity:oOp},gpuLab:{enabled:!!gpuEnabled,bypassed:!!gpuBypass,activePresetId:activeGpuPresetId,activePresetName:gpuPresetName,presetDirty:!!gpuPresetDirty,settings:normalizeGpuLabSettings(gpuSettings)},history:hNm.slice(-36),export:{format:eF,quality:eQ}};payload.receiptId=await hashText(JSON.stringify(payload));setLastReceipt(payload);downloadBlob(`${projectName||"auralith369"}.auralith-receipt.json`,"application/json",JSON.stringify(payload,null,2));flash("Receipt exported");return payload;}catch(e){console.error(e);flash("Receipt failed");return null;}};
   const captureVersion=()=>{const img=renderCompositeCanvas({checker:0}).toDataURL("image/png");setVersions(p=>[{name:`Version ${p.length+1}`,at:new Date().toISOString(),size:{...sz},img},...p].slice(0,9));flash("Version captured");};
   const restoreVersion=async(v)=>{try{save("Restore Version");const c=await canvasFromURL(v.img);ld.current={1:c};mks.current={};origS.current=null;setSz(v.size||{w:c.width,h:c.height});setLayers([{id:1,n:v.name||"Restored Version",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setTimeout(comp,60);flash("Version restored");}catch(e){console.error(e);flash("Restore failed");}};
 
-  const addL=()=>{const id=nid.current++;setLayers(p=>[...p,{id,n:`Layer ${id}`,vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(id);save("Add Layer");};
+  const addL=(input)=>{const id=nid.current++,requested=typeof input==="string"?input:input?.name,layerName=String(requested||`Layer ${id}`).trim().slice(0,120)||`Layer ${id}`,layer={id,n:layerName,vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}};setLayers(p=>[...p,layer]);setAL(id);save("Add Layer");return {id,name:layerName};};
   const addAdjL=preset=>{const id=nid.current++;save("Adjustment Layer");setLayers(p=>[...p,{id,n:preset.n,kind:"adjustment",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx},adj:{...preset.adj}}]);setAL(id);flash("Added "+preset.n);};
   const dupL=lid=>{const id=nid.current++;const s=ld.current[lid];if(s){const c=document.createElement("canvas");c.width=s.width;c.height=s.height;c.getContext("2d").drawImage(s,0,0);ld.current[id]=c;}const o=layers.find(l=>l.id===lid);setLayers(p=>[...p,{...JSON.parse(JSON.stringify(o)),id,n:(o?.n||"L")+" copy"}]);setAL(id);save("Duplicate Layer");};
   const delL=id=>{if(layers.length<=1)return;setLayers(p=>p.filter(l=>l.id!==id));delete ld.current[id];delete mks.current[id];if(aL===id)setAL(layers.find(l=>l.id!==id)?.id||1);setTimeout(comp,20);save("Delete Layer");};
@@ -382,6 +383,240 @@ export default function Auralith369(){
   // Keyboard
   useEffect(()=>{const h=e=>{if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")return;if(e.ctrlKey||e.metaKey){if(e.key==="z"){e.preventDefault();e.shiftKey?redo():undo();}if(e.key==="c"&&sel){e.preventDefault();selCp();}if(e.key==="x"&&sel){e.preventDefault();selCut();}if(e.key==="v"&&clip.current){e.preventDefault();selPst();}if(e.key==="n"){e.preventDefault();newC();}if(e.key==="e"){e.preventDefault();doExp();}if(e.key==="s"){e.preventDefault();exportProject();}if(e.key==="="||e.key==="+"){e.preventDefault();setZm(z=>Math.min(z+.25,12));}if(e.key==="-"){e.preventDefault();setZm(z=>Math.max(z-.25,.05));}if(e.key==="d"){e.preventDefault();sSel(null);}return;}const t=TLS.find(t=>t.k===e.key.toUpperCase());if(t)setTl(t.id);if(e.key==="x"){setFg(bg_);setBgC(fg);}if(e.key==="[")setBSz(s=>Math.max(1,s-3));if(e.key==="]")setBSz(s=>Math.min(200,s+3));if(e.key==="Escape"){sSel(null);sCrR(null);sPlc(0);sShpP(null);sGPr(null);sPenP([]);sXfing(0);setLassoPts([]);setRulerStart(null);setRulerEnd(null);}if(e.key==="Enter"){if(crR)applyCrop();if(penP.length>1)strokePen();if(xfing)applyXf();}if(e.key==="Delete"&&sel)selDel();if(e.key==="/")sShowK(v=>!v);if(e.key==="\\")setSplitV(v=>v?0:1);if(e.key===","&&cRot>-45)setCRot(r=>r-15);if(e.key==="."&&cRot<45)setCRot(r=>r+15);if(e.key==="0"&&!e.ctrlKey)setCRot(0);};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[undo,redo,fg,bg_,crR,sel,penP,xfing,cRot]);
   useEffect(()=>{const h=e=>{const items=e.clipboardData?.items;if(!items)return;for(const item of items){if(item.type.startsWith("image/")){e.preventDefault();const blob=item.getAsFile();const img=new Image();img.onload=()=>{save("Paste");const id=nid.current++;const c=document.createElement("canvas");c.width=sz.w;c.height=sz.h;c.getContext("2d").drawImage(img,0,0);ld.current[id]=c;setLayers(p=>[...p,{id,n:"Pasted",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(id);comp();};img.src=URL.createObjectURL(blob);break;}}};window.addEventListener("paste",h);return()=>window.removeEventListener("paste",h);},[sz]);
+
+
+  useEffect(()=>{
+    const sdkSlug=value=>String(value||"item").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"item";
+    const safeLayer=layer=>layer?{
+      id:layer.id,
+      name:String(layer.n||"Layer"),
+      kind:String(layer.kind||"pixel"),
+      visible:!!layer.vis,
+      opacity:Number(layer.op??1),
+      blend:String(layer.bl||"normal"),
+      mask:!!layer.mask,
+      blendIf:[Number(layer.biLo??0),Number(layer.biHi??255)],
+      fx:{
+        shadow:!!layer.fx?.shadow,
+        shadowBlur:Number(layer.fx?.shadowBlur??0),
+        shadowX:Number(layer.fx?.shadowX??0),
+        shadowY:Number(layer.fx?.shadowY??0),
+        glow:!!layer.fx?.glow,
+        glowSize:Number(layer.fx?.glowSize??0),
+      },
+    }:null;
+
+    const imageFileFromInput=(input,options={})=>{
+      const maxBytes=32*1024*1024;
+      const name=String(options.name||"auralith-image.png").slice(0,160);
+      const allowed=/^image\/(?:png|jpeg|webp)$/i;
+      if(input instanceof File){
+        if(!allowed.test(String(input.type||"")))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
+        if(input.size>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
+        return input;
+      }
+      if(input instanceof Blob){
+        if(!allowed.test(String(input.type||"")))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
+        if(input.size>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
+        return new File([input],name,{type:input.type});
+      }
+      if(typeof input==="string"){
+        const match=/^data:(image\/(?:png|jpeg|webp));base64,(.+)$/i.exec(input);
+        if(!match)throw new Error("AURALITH_SDK_IMAGE_DATA_URL_INVALID");
+        let binary;
+        try{binary=atob(match[2]);}catch{throw new Error("AURALITH_SDK_IMAGE_DATA_URL_INVALID");}
+        if(binary.length>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
+        const bytes=new Uint8Array(binary.length);
+        for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+        return new File([bytes],name,{type:match[1].toLowerCase()});
+      }
+      throw new Error("AURALITH_SDK_IMAGE_INPUT_REQUIRED");
+    };
+
+    const projectFileFromInput=input=>{
+      if(input instanceof File)return input;
+      if(input instanceof Blob)return new File([input],"Auralith SDK Project.auralith",{type:"application/json"});
+      if(input&&typeof input==="object")return new File([JSON.stringify(input)],"Auralith SDK Project.auralith",{type:"application/json"});
+      if(typeof input==="string")return new File([input],"Auralith SDK Project.auralith",{type:"application/json"});
+      throw new Error("AURALITH_SDK_PROJECT_INPUT_REQUIRED");
+    };
+
+    const pngBlob=()=>new Promise((resolve,reject)=>{
+      const canvas=renderCompositeCanvas({checker:0});
+      if(typeof canvas.toBlob==="function"){
+        canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("AURALITH_SDK_PNG_EXPORT_FAILED")),"image/png");
+        return;
+      }
+      try{
+        const data=canvas.toDataURL("image/png"),comma=data.indexOf(","),binary=atob(data.slice(comma+1)),bytes=new Uint8Array(binary.length);
+        for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+        resolve(new Blob([bytes],{type:"image/png"}));
+      }catch(error){reject(error);}
+    });
+
+    const resolveFx=id=>{
+      const key=String(id||"").trim().toLowerCase();
+      const found=Object.entries(PF).find(([fxId,fx])=>fxId.toLowerCase()===key||sdkSlug(fx.n)===key||String(fx.n).toLowerCase()===key);
+      if(!found)throw new Error("AURALITH_SDK_FX_UNKNOWN");
+      return {id:found[0],value:found[1]};
+    };
+    const resolveLut=id=>{
+      const key=String(id||"").trim().toLowerCase();
+      const found=LUTS.find(lut=>sdkSlug(lut.n)===key||String(lut.n).toLowerCase()===key);
+      if(!found)throw new Error("AURALITH_SDK_LUT_UNKNOWN");
+      return found;
+    };
+    const resolveStyle=id=>{
+      const key=String(id||"").trim().toLowerCase();
+      const found=STYLE_CARDS.find(card=>String(card.id).toLowerCase()===key||sdkSlug(card.n)===key||String(card.n).toLowerCase()===key);
+      if(!found)throw new Error("AURALITH_SDK_STYLE_UNKNOWN");
+      return found;
+    };
+
+    const adapter={
+      capabilities:()=>({
+        appVersion:APP_VERSION,
+        bridge:{domistika:{available:Boolean(window.auralithDomistikaBridge?.receive)}},
+      }),
+      projectInfo:()=>({
+        name:projectName,
+        width:sz.w,
+        height:sz.h,
+        activeLayerId:aL,
+        layerCount:layers.length,
+        hasImage:!!hasI,
+      }),
+      projectSerialize:()=>buildProjectPayload(),
+      projectOpen:async input=>({ok:Boolean(await loadProject(projectFileFromInput(input)))}),
+
+      imageOpen:async(input,options={})=>loadImg(imageFileFromInput(input,options)),
+      imageCurrent:()=>({
+        loaded:!!hasI,
+        width:sz.w,
+        height:sz.h,
+        projectName,
+        dominantColors:[...domColors],
+      }),
+
+      layersList:()=>layers.map(safeLayer),
+      layersAdd:name=>addL({name}),
+      layersActivate:id=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        setAL(layer.id);
+        return safeLayer(layer);
+      },
+      layersOpacity:(id,value)=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        const opacity=cl(Number(value),0,1);
+        if(!Number.isFinite(opacity))throw new Error("AURALITH_SDK_LAYER_OPACITY_INVALID");
+        setLayers(current=>current.map(item=>item.id===layer.id?{...item,op:opacity}:item));
+        return {...safeLayer(layer),opacity};
+      },
+      layersBlend:(id,value)=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        const blend=String(value||"normal");
+        if(!BLN.includes(blend))throw new Error("AURALITH_SDK_LAYER_BLEND_INVALID");
+        setLayers(current=>current.map(item=>item.id===layer.id?{...item,bl:blend}:item));
+        return {...safeLayer(layer),blend};
+      },
+      layersMask:(id,enabled=true)=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        const wanted=Boolean(enabled);
+        if(Boolean(layer.mask)!==wanted)togMask(layer.id);
+        return {...safeLayer(layer),mask:wanted};
+      },
+
+      fxList:()=>Object.entries(PF).map(([id,fx])=>({id,name:fx.n,icon:fx.c||""})),
+      fxApply:id=>{const found=resolveFx(id);apPxF(found.id);return {id:found.id,name:found.value.n};},
+
+      lutList:()=>LUTS.map(lut=>({id:sdkSlug(lut.n),name:lut.n})),
+      lutApply:id=>{const lut=resolveLut(id);applyLUT(lut);return {id:sdkSlug(lut.n),name:lut.n};},
+
+      styleList:()=>STYLE_CARDS.map(card=>({id:card.id,name:card.n,description:card.desc})),
+      styleApply:id=>{const card=resolveStyle(id);applyStyleCard(card);return {id:card.id,name:card.n,description:card.desc};},
+
+      adjustmentGet:()=>({...adj}),
+      adjustmentSet:values=>{
+        const next={...adj};
+        if(values.br!=null)next.br=cl(Number(values.br),0,200);
+        if(values.ct!=null)next.ct=cl(Number(values.ct),0,200);
+        if(values.st!=null)next.st=cl(Number(values.st),0,200);
+        if(values.hu!=null)next.hu=cl(Number(values.hu),0,360);
+        if(values.bl!=null)next.bl=cl(Number(values.bl),0,20);
+        if(values.temp!=null)next.temp=cl(Number(values.temp),-50,50);
+        if(Object.values(next).some(value=>!Number.isFinite(Number(value))))throw new Error("AURALITH_SDK_ADJUSTMENT_INVALID");
+        sAdj(next);
+        return next;
+      },
+
+      gpuCapabilities:()=>({
+        supported:gpuStatus.supported,
+        active:!!gpuStatus.active,
+        reason:String(gpuStatus.reason||""),
+        renderer:gpuStatus.renderer?String(gpuStatus.renderer):null,
+        maxTextureSize:Number(gpuStatus.maxTextureSize||0)||null,
+      }),
+      gpuCartridges:()=>gpuPresets.map(preset=>({
+        id:preset.id,
+        name:preset.name,
+        description:preset.description||"",
+        builtIn:!!preset.builtIn,
+        favorite:!!preset.favorite,
+      })),
+      gpuApply:id=>{
+        const result=applyGpuPresetById(String(id));
+        if(!result)throw new Error("AURALITH_SDK_GPU_CARTRIDGE_UNKNOWN");
+        return result;
+      },
+      gpuState:()=>({
+        enabled:!!gpuEnabled,
+        bypassed:!!gpuBypass,
+        activeCartridgeId:activeGpuPresetId||null,
+        activeCartridgeName:gpuPresetName||null,
+        dirty:!!gpuPresetDirty,
+      }),
+
+      actionsList:()=>savedBatches.map((batch,index)=>({
+        id:"batch-"+index,
+        name:String(batch.n||("Batch "+(index+1))),
+        stepCount:Array.isArray(batch.acts)?batch.acts.length:0,
+      })),
+      actionsRun:id=>{
+        const match=/^batch-(\d+)$/.exec(String(id||""));
+        const index=match?Number(match[1]):-1,batch=savedBatches[index];
+        if(!batch)throw new Error("AURALITH_SDK_ACTION_UNKNOWN");
+        playBatch(batch.acts||[]);
+        return {id:"batch-"+index,name:batch.n||("Batch "+(index+1)),stepCount:(batch.acts||[]).length};
+      },
+
+      receiptLatest:()=>lastReceipt,
+      receiptExport:()=>exportReceipt(),
+
+      bridgeReceive:async()=>{
+        if(!window.auralithDomistikaBridge?.receive)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        return window.auralithDomistikaBridge.receive();
+      },
+      bridgeGet:async()=>{
+        if(!window.auralithDomistikaBridge?.get)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        return window.auralithDomistikaBridge.get();
+      },
+      bridgeClear:()=>{
+        if(!window.auralithDomistikaBridge?.clear)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        window.auralithDomistikaBridge.clear();
+        return true;
+      },
+
+      exportPng:()=>pngBlob(),
+      exportProject:()=>buildProjectPayload(),
+    };
+
+    bindAuralithRuntime(adapter);
+  });
+  useEffect(()=>()=>unbindAuralithRuntime(),[]);
 
   const cursor=useMemo(()=>{if(["brush","eraser","fill","gradient","clone","smudge","dodge","burn","liquify","colorReplace","lasso","wand","heal","caFill","ruler"].includes(tl))return"crosshair";if(tl==="text")return plc?"crosshair":"text";if(["picker","select","crop","shape","pen"].includes(tl))return"crosshair";if(tl==="move")return"grab";return"default";},[tl,plc]);
 
@@ -683,7 +918,7 @@ export default function Auralith369(){
     {recoveryCandidate?<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.78)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1200}}><div role="dialog" aria-label="Recover unsaved session" style={{background:C.pn,border:`1px solid ${C.pr}`,borderRadius:8,padding:16,width:360,boxShadow:`0 18px 50px ${C.bk}`}}><div style={{fontSize:12,fontWeight:700,color:C.tx,marginBottom:5}}>Recover unsaved session?</div><div style={{fontSize:8,color:C.td,lineHeight:1.6,marginBottom:10}}>Auralith found a local recovery snapshot from {new Date(recoveryCandidate.savedAt).toLocaleString()}. Restore it or discard it to begin fresh.</div><div style={{display:"flex",gap:6,justifyContent:"flex-end"}}><Bt onClick={discardRecovery} sm>Discard</Bt><button onClick={restoreRecovery} style={{padding:"4px 9px",background:C.ac,color:C.bg,border:"none",borderRadius:3,fontWeight:700,fontFamily:FN,fontSize:7,cursor:"pointer"}}>Recover Session</button></div></div></div>:null}
 
     {showK?<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:1000}} onClick={()=>sShowK(0)}><div style={{background:C.pn,border:`1px solid ${C.bd}`,borderRadius:6,padding:12,width:500,maxHeight:"80vh",overflow:"auto"}} onClick={e=>e.stopPropagation()}>
-      <div style={{fontSize:10,fontWeight:600,marginBottom:5,color:C.ac}}>⌨ Auralith369 v0.6.0-alpha Shortcuts</div>
+      <div style={{fontSize:10,fontWeight:600,marginBottom:5,color:C.ac}}>⌨ Auralith369 {APP_VERSION} Shortcuts</div>
       <div style={{columns:2,columnGap:10,fontSize:6.5,color:C.td,lineHeight:1.7}}>
         {[["B","Brush"],["E","Eraser"],["F","Smudge"],["O","Dodge"],["N","Burn"],["H","Heal"],["J","Col Replace"],["S","Clone"],["W","Liquify"],["G","Fill"],["A","CA Fill"],["D","Gradient"],["U","Shape"],["T","Text"],["P","Pen"],["I","Picker"],["Q","Ruler"],["L","Lasso"],["K","Magic Wand"],["M","Select"],["R","Transform"],["V","Move"],["C","Crop"],["[/]","Brush ±"],["X","Swap FG/BG"],["Ctrl+Z","Undo"],["⇧Ctrl+Z","Redo"],["Ctrl+C/X/V","Clipboard"],["Ctrl+D","Deselect"],["Del","Delete"],["Enter","Apply"],["Esc","Cancel"],["\\","Split View"],[",/.","Rotate View"],["0","Reset View"],["/ ","Shortcuts"]].map(([k,v])=>(<div key={k} style={{display:"flex",justifyContent:"space-between"}}><span style={{background:C.srf,padding:"0 2px",borderRadius:1,fontSize:5.5,color:C.tx}}>{k}</span><span>{v}</span></div>))}
       </div>

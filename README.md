@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.6.0-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.7.0-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -17,6 +17,41 @@
 Auralith369 is a public-alpha creative workstation by PHI369 Labs for image editing, poster forging, style cards, manifests, and auditable creative receipts.
 
 > ⚠️ **Alpha status:** This is alpha software. Auralith369 runs locally in your browser. Avoid opening untrusted `.auralith` project files until import validation is fully hardened. No warranty; MIT licensed.
+
+## v0.7.0-alpha — Stable SDK v0.1
+
+Auralith369 now exposes a frozen semantic finishing-workstation API:
+
+```js
+window.Auralith
+```
+
+The live contract includes:
+
+```js
+Auralith.ready()
+Auralith.capabilities()
+
+Auralith.layers.*
+Auralith.fx.*
+Auralith.lut.*
+Auralith.style.*
+Auralith.adjustments.*
+Auralith.gpu.*
+Auralith.actions.*
+Auralith.receipts.*
+Auralith.bridge.domistika.*
+Auralith.export.*
+Auralith.commands.*
+```
+
+The API wraps the same workstation operations used by the human interface. It does not expose arbitrary JavaScript, raw Canvas/WebGL contexts, network fetch, or a bridge-integrity bypass.
+
+Canvas 2D remains authoritative for projects, editing, receipts, and standard exports. GPU Lab remains an optional non-destructive finishing preview.
+
+For integrations, use `Auralith.capabilities()` and the live command catalog rather than inferring features from README prose.
+
+See [Stable SDK v0.1](docs/STABLE_SDK_V070.md) and [v0.7.0-alpha Release Notes](RELEASE_NOTES_v0.7.0-alpha.md).
 
 ## Features (Public Alpha)
 - Canvas editor with local rendering

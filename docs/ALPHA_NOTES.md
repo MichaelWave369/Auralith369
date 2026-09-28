@@ -1,8 +1,11 @@
 # Auralith369 Alpha Notes
 
-Auralith369 v0.1.0-alpha is an early public alpha of a local-first visual alchemy workstation.
+Auralith369 v0.7.0-alpha is a public alpha of a local-first visual alchemy workstation.
 
 ## What works now
+
+- Frozen `window.Auralith` stable SDK v0.1 with live capabilities and commands
+- Semantic FX / LUT / Style / GPU / receipt / bridge APIs
 
 - Local browser-based editor shell
 - Canvas workspace

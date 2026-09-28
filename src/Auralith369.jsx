@@ -409,15 +409,16 @@ export default function Auralith369(){
     const imageFileFromInput=(input,options={})=>{
       const maxBytes=32*1024*1024;
       const name=String(options.name||"auralith-image.png").slice(0,160);
+      const allowed=/^image\/(?:png|jpeg|webp)$/i;
       if(input instanceof File){
-        if(!String(input.type||"").startsWith("image/"))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
+        if(!allowed.test(String(input.type||"")))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
         if(input.size>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
         return input;
       }
       if(input instanceof Blob){
-        if(!String(input.type||"").startsWith("image/"))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
+        if(!allowed.test(String(input.type||"")))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
         if(input.size>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
-        return new File([input],name,{type:input.type||"image/png"});
+        return new File([input],name,{type:input.type});
       }
       if(typeof input==="string"){
         const match=/^data:(image\/(?:png|jpeg|webp));base64,(.+)$/i.exec(input);
@@ -614,8 +615,8 @@ export default function Auralith369(){
     };
 
     bindAuralithRuntime(adapter);
-    return()=>unbindAuralithRuntime(adapter);
   });
+  useEffect(()=>()=>unbindAuralithRuntime(),[]);
 
   const cursor=useMemo(()=>{if(["brush","eraser","fill","gradient","clone","smudge","dodge","burn","liquify","colorReplace","lasso","wand","heal","caFill","ruler"].includes(tl))return"crosshair";if(tl==="text")return plc?"crosshair":"text";if(["picker","select","crop","shape","pen"].includes(tl))return"crosshair";if(tl==="move")return"grab";return"default";},[tl,plc]);
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.0-alpha
+- Added frozen `window.Auralith` stable SDK v0.1.
+- Added live `Auralith.capabilities()` contract.
+- Added semantic layer operations without exposing raw canvas contexts.
+- Added FX, LUT, Style Card, adjustment, GPU Cartridge, and Action surfaces.
+- Added receipt and authoritative Canvas 2D export surfaces.
+- Added validated bounded image/project opening through the SDK.
+- Added verified Domistika bridge access through the existing SHA-256 receiver.
+- Added dynamic command catalog, search, and execution.
+- Preserved the Canvas 2D / GPU preview authority boundary.
+- Added SDK unit/static contract coverage.
+
+
 ## 0.1.0-alpha
 - Fixed README image paths for GitHub rendering.
 - Added Auralith369 logo and infographic poster to the README.

@@ -384,6 +384,239 @@ export default function Auralith369(){
   useEffect(()=>{const h=e=>{if(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA")return;if(e.ctrlKey||e.metaKey){if(e.key==="z"){e.preventDefault();e.shiftKey?redo():undo();}if(e.key==="c"&&sel){e.preventDefault();selCp();}if(e.key==="x"&&sel){e.preventDefault();selCut();}if(e.key==="v"&&clip.current){e.preventDefault();selPst();}if(e.key==="n"){e.preventDefault();newC();}if(e.key==="e"){e.preventDefault();doExp();}if(e.key==="s"){e.preventDefault();exportProject();}if(e.key==="="||e.key==="+"){e.preventDefault();setZm(z=>Math.min(z+.25,12));}if(e.key==="-"){e.preventDefault();setZm(z=>Math.max(z-.25,.05));}if(e.key==="d"){e.preventDefault();sSel(null);}return;}const t=TLS.find(t=>t.k===e.key.toUpperCase());if(t)setTl(t.id);if(e.key==="x"){setFg(bg_);setBgC(fg);}if(e.key==="[")setBSz(s=>Math.max(1,s-3));if(e.key==="]")setBSz(s=>Math.min(200,s+3));if(e.key==="Escape"){sSel(null);sCrR(null);sPlc(0);sShpP(null);sGPr(null);sPenP([]);sXfing(0);setLassoPts([]);setRulerStart(null);setRulerEnd(null);}if(e.key==="Enter"){if(crR)applyCrop();if(penP.length>1)strokePen();if(xfing)applyXf();}if(e.key==="Delete"&&sel)selDel();if(e.key==="/")sShowK(v=>!v);if(e.key==="\\")setSplitV(v=>v?0:1);if(e.key===","&&cRot>-45)setCRot(r=>r-15);if(e.key==="."&&cRot<45)setCRot(r=>r+15);if(e.key==="0"&&!e.ctrlKey)setCRot(0);};window.addEventListener("keydown",h);return()=>window.removeEventListener("keydown",h);},[undo,redo,fg,bg_,crR,sel,penP,xfing,cRot]);
   useEffect(()=>{const h=e=>{const items=e.clipboardData?.items;if(!items)return;for(const item of items){if(item.type.startsWith("image/")){e.preventDefault();const blob=item.getAsFile();const img=new Image();img.onload=()=>{save("Paste");const id=nid.current++;const c=document.createElement("canvas");c.width=sz.w;c.height=sz.h;c.getContext("2d").drawImage(img,0,0);ld.current[id]=c;setLayers(p=>[...p,{id,n:"Pasted",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(id);comp();};img.src=URL.createObjectURL(blob);break;}}};window.addEventListener("paste",h);return()=>window.removeEventListener("paste",h);},[sz]);
 
+
+  useEffect(()=>{
+    const sdkSlug=value=>String(value||"item").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"")||"item";
+    const safeLayer=layer=>layer?{
+      id:layer.id,
+      name:String(layer.n||"Layer"),
+      kind:String(layer.kind||"pixel"),
+      visible:!!layer.vis,
+      opacity:Number(layer.op??1),
+      blend:String(layer.bl||"normal"),
+      mask:!!layer.mask,
+      blendIf:[Number(layer.biLo??0),Number(layer.biHi??255)],
+      fx:{
+        shadow:!!layer.fx?.shadow,
+        shadowBlur:Number(layer.fx?.shadowBlur??0),
+        shadowX:Number(layer.fx?.shadowX??0),
+        shadowY:Number(layer.fx?.shadowY??0),
+        glow:!!layer.fx?.glow,
+        glowSize:Number(layer.fx?.glowSize??0),
+      },
+    }:null;
+
+    const imageFileFromInput=(input,options={})=>{
+      const maxBytes=32*1024*1024;
+      const name=String(options.name||"auralith-image.png").slice(0,160);
+      if(input instanceof File){
+        if(!String(input.type||"").startsWith("image/"))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
+        if(input.size>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
+        return input;
+      }
+      if(input instanceof Blob){
+        if(!String(input.type||"").startsWith("image/"))throw new Error("AURALITH_SDK_IMAGE_TYPE_INVALID");
+        if(input.size>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
+        return new File([input],name,{type:input.type||"image/png"});
+      }
+      if(typeof input==="string"){
+        const match=/^data:(image\/(?:png|jpeg|webp));base64,(.+)$/i.exec(input);
+        if(!match)throw new Error("AURALITH_SDK_IMAGE_DATA_URL_INVALID");
+        let binary;
+        try{binary=atob(match[2]);}catch{throw new Error("AURALITH_SDK_IMAGE_DATA_URL_INVALID");}
+        if(binary.length>maxBytes)throw new Error("AURALITH_SDK_IMAGE_TOO_LARGE");
+        const bytes=new Uint8Array(binary.length);
+        for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+        return new File([bytes],name,{type:match[1].toLowerCase()});
+      }
+      throw new Error("AURALITH_SDK_IMAGE_INPUT_REQUIRED");
+    };
+
+    const projectFileFromInput=input=>{
+      if(input instanceof File)return input;
+      if(input instanceof Blob)return new File([input],"Auralith SDK Project.auralith",{type:"application/json"});
+      if(input&&typeof input==="object")return new File([JSON.stringify(input)],"Auralith SDK Project.auralith",{type:"application/json"});
+      if(typeof input==="string")return new File([input],"Auralith SDK Project.auralith",{type:"application/json"});
+      throw new Error("AURALITH_SDK_PROJECT_INPUT_REQUIRED");
+    };
+
+    const pngBlob=()=>new Promise((resolve,reject)=>{
+      const canvas=renderCompositeCanvas({checker:0});
+      if(typeof canvas.toBlob==="function"){
+        canvas.toBlob(blob=>blob?resolve(blob):reject(new Error("AURALITH_SDK_PNG_EXPORT_FAILED")),"image/png");
+        return;
+      }
+      try{
+        const data=canvas.toDataURL("image/png"),comma=data.indexOf(","),binary=atob(data.slice(comma+1)),bytes=new Uint8Array(binary.length);
+        for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+        resolve(new Blob([bytes],{type:"image/png"}));
+      }catch(error){reject(error);}
+    });
+
+    const resolveFx=id=>{
+      const key=String(id||"").trim().toLowerCase();
+      const found=Object.entries(PF).find(([fxId,fx])=>fxId.toLowerCase()===key||sdkSlug(fx.n)===key||String(fx.n).toLowerCase()===key);
+      if(!found)throw new Error("AURALITH_SDK_FX_UNKNOWN");
+      return {id:found[0],value:found[1]};
+    };
+    const resolveLut=id=>{
+      const key=String(id||"").trim().toLowerCase();
+      const found=LUTS.find(lut=>sdkSlug(lut.n)===key||String(lut.n).toLowerCase()===key);
+      if(!found)throw new Error("AURALITH_SDK_LUT_UNKNOWN");
+      return found;
+    };
+    const resolveStyle=id=>{
+      const key=String(id||"").trim().toLowerCase();
+      const found=STYLE_CARDS.find(card=>String(card.id).toLowerCase()===key||sdkSlug(card.n)===key||String(card.n).toLowerCase()===key);
+      if(!found)throw new Error("AURALITH_SDK_STYLE_UNKNOWN");
+      return found;
+    };
+
+    const adapter={
+      capabilities:()=>({
+        appVersion:APP_VERSION,
+        bridge:{domistika:{available:Boolean(window.auralithDomistikaBridge?.receive)}},
+      }),
+      projectInfo:()=>({
+        name:projectName,
+        width:sz.w,
+        height:sz.h,
+        activeLayerId:aL,
+        layerCount:layers.length,
+        hasImage:!!hasI,
+      }),
+      projectSerialize:()=>buildProjectPayload(),
+      projectOpen:async input=>({ok:Boolean(await loadProject(projectFileFromInput(input)))}),
+
+      imageOpen:async(input,options={})=>loadImg(imageFileFromInput(input,options)),
+      imageCurrent:()=>({
+        loaded:!!hasI,
+        width:sz.w,
+        height:sz.h,
+        projectName,
+        dominantColors:[...domColors],
+      }),
+
+      layersList:()=>layers.map(safeLayer),
+      layersAdd:name=>addL({name}),
+      layersActivate:id=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        setAL(layer.id);
+        return safeLayer(layer);
+      },
+      layersOpacity:(id,value)=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        const opacity=cl(Number(value),0,1);
+        if(!Number.isFinite(opacity))throw new Error("AURALITH_SDK_LAYER_OPACITY_INVALID");
+        setLayers(current=>current.map(item=>item.id===layer.id?{...item,op:opacity}:item));
+        return {...safeLayer(layer),opacity};
+      },
+      layersBlend:(id,value)=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        const blend=String(value||"normal");
+        if(!BLN.includes(blend))throw new Error("AURALITH_SDK_LAYER_BLEND_INVALID");
+        setLayers(current=>current.map(item=>item.id===layer.id?{...item,bl:blend}:item));
+        return {...safeLayer(layer),blend};
+      },
+      layersMask:(id,enabled=true)=>{
+        const layer=layers.find(item=>String(item.id)===String(id));
+        if(!layer)throw new Error("AURALITH_SDK_LAYER_NOT_FOUND");
+        const wanted=Boolean(enabled);
+        if(Boolean(layer.mask)!==wanted)togMask(layer.id);
+        return {...safeLayer(layer),mask:wanted};
+      },
+
+      fxList:()=>Object.entries(PF).map(([id,fx])=>({id,name:fx.n,icon:fx.c||""})),
+      fxApply:id=>{const found=resolveFx(id);apPxF(found.id);return {id:found.id,name:found.value.n};},
+
+      lutList:()=>LUTS.map(lut=>({id:sdkSlug(lut.n),name:lut.n})),
+      lutApply:id=>{const lut=resolveLut(id);applyLUT(lut);return {id:sdkSlug(lut.n),name:lut.n};},
+
+      styleList:()=>STYLE_CARDS.map(card=>({id:card.id,name:card.n,description:card.desc})),
+      styleApply:id=>{const card=resolveStyle(id);applyStyleCard(card);return {id:card.id,name:card.n,description:card.desc};},
+
+      adjustmentGet:()=>({...adj}),
+      adjustmentSet:values=>{
+        const next={...adj};
+        if(values.br!=null)next.br=cl(Number(values.br),0,200);
+        if(values.ct!=null)next.ct=cl(Number(values.ct),0,200);
+        if(values.st!=null)next.st=cl(Number(values.st),0,200);
+        if(values.hu!=null)next.hu=cl(Number(values.hu),0,360);
+        if(values.bl!=null)next.bl=cl(Number(values.bl),0,20);
+        if(values.temp!=null)next.temp=cl(Number(values.temp),-50,50);
+        if(Object.values(next).some(value=>!Number.isFinite(Number(value))))throw new Error("AURALITH_SDK_ADJUSTMENT_INVALID");
+        sAdj(next);
+        return next;
+      },
+
+      gpuCapabilities:()=>({
+        supported:gpuStatus.supported,
+        active:!!gpuStatus.active,
+        reason:String(gpuStatus.reason||""),
+        renderer:gpuStatus.renderer?String(gpuStatus.renderer):null,
+        maxTextureSize:Number(gpuStatus.maxTextureSize||0)||null,
+      }),
+      gpuCartridges:()=>gpuPresets.map(preset=>({
+        id:preset.id,
+        name:preset.name,
+        description:preset.description||"",
+        builtIn:!!preset.builtIn,
+        favorite:!!preset.favorite,
+      })),
+      gpuApply:id=>{
+        const result=applyGpuPresetById(String(id));
+        if(!result)throw new Error("AURALITH_SDK_GPU_CARTRIDGE_UNKNOWN");
+        return result;
+      },
+      gpuState:()=>({
+        enabled:!!gpuEnabled,
+        bypassed:!!gpuBypass,
+        activeCartridgeId:activeGpuPresetId||null,
+        activeCartridgeName:gpuPresetName||null,
+        dirty:!!gpuPresetDirty,
+      }),
+
+      actionsList:()=>savedBatches.map((batch,index)=>({
+        id:"batch-"+index,
+        name:String(batch.n||("Batch "+(index+1))),
+        stepCount:Array.isArray(batch.acts)?batch.acts.length:0,
+      })),
+      actionsRun:id=>{
+        const match=/^batch-(\d+)$/.exec(String(id||""));
+        const index=match?Number(match[1]):-1,batch=savedBatches[index];
+        if(!batch)throw new Error("AURALITH_SDK_ACTION_UNKNOWN");
+        playBatch(batch.acts||[]);
+        return {id:"batch-"+index,name:batch.n||("Batch "+(index+1)),stepCount:(batch.acts||[]).length};
+      },
+
+      receiptLatest:()=>lastReceipt,
+      receiptExport:()=>exportReceipt(),
+
+      bridgeReceive:async()=>{
+        if(!window.auralithDomistikaBridge?.receive)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        return window.auralithDomistikaBridge.receive();
+      },
+      bridgeGet:async()=>{
+        if(!window.auralithDomistikaBridge?.get)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        return window.auralithDomistikaBridge.get();
+      },
+      bridgeClear:()=>{
+        if(!window.auralithDomistikaBridge?.clear)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        window.auralithDomistikaBridge.clear();
+        return true;
+      },
+
+      exportPng:()=>pngBlob(),
+      exportProject:()=>buildProjectPayload(),
+    };
+
+    bindAuralithRuntime(adapter);
+    return()=>unbindAuralithRuntime(adapter);
+  });
+
   const cursor=useMemo(()=>{if(["brush","eraser","fill","gradient","clone","smudge","dodge","burn","liquify","colorReplace","lasso","wand","heal","caFill","ruler"].includes(tl))return"crosshair";if(tl==="text")return plc?"crosshair":"text";if(["picker","select","crop","shape","pen"].includes(tl))return"crosshair";if(tl==="move")return"grab";return"default";},[tl,plc]);
 
   const curL=layers.find(l=>l.id===aL);

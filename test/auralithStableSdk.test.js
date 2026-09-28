@@ -92,7 +92,9 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
   assert.deepEqual(api.layers.add('Finishing Pass'), { id: 3, name: 'Finishing Pass' });
   assert.equal(api.layers.list().length, 2);
 
-  assert.equal(api.commands.search('golden')[0].id, 'lut.golden-hour');
+  const golden = api.commands.search('golden');
+  assert.equal(golden.some(command => command.id === 'lut.golden-hour'), true);
+  assert.equal(golden.some(command => command.id === 'gpu.builtin:golden-oracle'), true);
   assert.equal(api.commands.search('gpu golden').some(command => command.id === 'gpu.builtin:golden-oracle'), true);
   await api.commands.execute('fx.sharpen');
   await api.commands.execute('lut.golden-hour');

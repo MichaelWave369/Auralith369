@@ -19,8 +19,8 @@ function fakeApi() {
     ready:()=>true,
     capabilities:()=>({
       schema:'auralith.sdk.v1',
-      sdkVersion:'0.1.2',
-      appVersion:'v0.7.3-alpha',
+      sdkVersion:'0.1.3',
+      appVersion:'v0.7.4-alpha',
       ready:true,
       project:{name:'Night Harbor',width:1200,height:800,activeLayerId:1,layerCount:2},
       image:{loaded:true,width:1200,height:800},
@@ -45,7 +45,13 @@ function fakeApi() {
     },
     fx:{apply:(id)=>{calls.push(['fx',id]);return{id,name:'Sharpen'};}},
     lut:{apply:(id)=>{calls.push(['lut',id]);return{id,name:'Golden Hour'};}},
-    style:{apply:(id)=>{calls.push(['style',id]);return{id,name:'Φ Forge'};}},
+    style:{
+      list:()=>[
+        {id:'phi_forge',name:'Φ Forge',description:'Clean grade',intent:{class:'stylized-grade',destructiveAppearance:true,preservesPhotometricStructure:true}},
+        {id:'analog_oracle',name:'Analog Oracle',description:'Halftone transform',intent:{class:'surface-transform',destructiveAppearance:true,preservesPhotometricStructure:false}},
+      ],
+      apply:(id)=>{calls.push(['style',id]);return{id,name:id==='analog_oracle'?'Analog Oracle':'Φ Forge'};},
+    },
     gpu:{
       apply:(id)=>{calls.push(['gpu',id]);return{id,name:'Golden Oracle'};},
       state:()=>({enabled:true,bypassed:false,activeCartridgeId:'builtin:golden-oracle'}),
@@ -108,13 +114,13 @@ function fakeApi() {
 }
 
 test('Auralith site tools expose a compact stable finishing vocabulary', async()=>{
-  assert.equal(AURALITH_SITE_TOOLS_VERSION,'0.1.2');
+  assert.equal(AURALITH_SITE_TOOLS_VERSION,'0.1.3');
   assert.equal(AURALITH_SITE_TOOLS_SCHEMA,'auralith.site-tools.v1');
 
   const api=fakeApi();
   const tools=createAuralithSiteTools(api);
   assert.equal(Object.isFrozen(tools),true);
-  assert.equal(tools.length,16);
+  assert.equal(tools.length,17);
   assert.deepEqual(tools.map(t=>t.name),[
     'auralith_get_capabilities',
     'auralith_search_commands',
@@ -123,6 +129,7 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
     'auralith_update_layer',
     'auralith_apply_fx',
     'auralith_apply_lut',
+    'auralith_list_styles',
     'auralith_apply_style',
     'auralith_apply_gpu_cartridge',
     'auralith_set_adjustments',
@@ -138,6 +145,7 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
     'auralith_get_capabilities',
     'auralith_search_commands',
     'auralith_list_layers',
+    'auralith_list_styles',
     'auralith_get_domistika_transfer',
     'auralith_capture_png',
   ]);
@@ -174,6 +182,10 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
 
   await tools.find(t=>t.name==='auralith_apply_lut').execute({lutId:'golden-hour'});
   assert.deepEqual(api.calls.at(-1),['lut','golden-hour']);
+
+  const styles = JSON.parse(await tools.find(t=>t.name==='auralith_list_styles').execute({}));
+  assert.equal(styles.styles.find(style=>style.id==='analog_oracle').intent.class,'surface-transform');
+  assert.equal(styles.styles.find(style=>style.id==='analog_oracle').intent.preservesPhotometricStructure,false);
 
   await tools.find(t=>t.name==='auralith_apply_style').execute({styleId:'phi_forge'});
   assert.deepEqual(api.calls.at(-1),['style','phi_forge']);
@@ -238,8 +250,8 @@ test('Auralith site tools register through modelContext with abort lifecycle', a
   };
   const state=await installAuralithSiteTools({api,modelContext});
   assert.equal(state.available,true);
-  assert.equal(state.registered.length,16);
-  assert.equal(registrations.length,16);
+  assert.equal(state.registered.length,17);
+  assert.equal(registrations.length,17);
   for(const entry of registrations) assert.ok(entry.options.signal);
   assert.equal(state.stop(),true);
 });
@@ -256,6 +268,9 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.match(source,/auralith\.site-tools\.v1/);
   assert.match(source,/payloadIncluded/);
   assert.match(source,/auralith_capture_png/);
+  assert.match(source,/auralith_list_styles/);
+  assert.match(source,/captureHash/);
+  assert.match(source,/creativeManifestHash/);
   assert.match(source,/auralith_import_domistika_transfer/);
   assert.match(source,/overlayCount/);
   assert.match(source,/const \{ dataUrl, \.\.\.portable \} = capture/);
@@ -266,5 +281,5 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.doesNotMatch(source,/WebGLRenderingContext/);
 
   assert.match(app,/installAuralithSiteToolsGlobal/);
-  assert.match(editor,/APP_VERSION="v0\.7\.3-alpha"/);
+  assert.match(editor,/APP_VERSION="v0\.7\.4-alpha"/);
 });

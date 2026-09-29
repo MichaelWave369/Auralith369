@@ -1,4 +1,4 @@
-// Auralith369 v0.7.1-alpha — local-first visual alchemy by PHI369 Labs
+// Auralith369 v0.7.2-alpha — local-first visual alchemy by PHI369 Labs
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
@@ -12,7 +12,7 @@ import { GPU_LAB_BUILTIN_PRESETS, createCustomGpuPreset, findGpuPreset, parseGpu
 import { loadCustomGpuPresets, loadGpuFavoriteIds, saveCustomGpuPresets, saveGpuFavoriteIds } from "./gpu/gpuPresetStorage.js";
 import { bindAuralithRuntime, unbindAuralithRuntime } from "./lib/auralithStableSdk.js";
 
-const APP_VERSION="v0.7.1-alpha";
+const APP_VERSION="v0.7.2-alpha";
 const PHI=1.618033988749895,LAM=0.618033988749895;
 const C={bg:"#050910",pn:"#090e1b",pa:"#0b1120",bd:"#121a2f",srf:"#0d142c",sh:"#121b3a",sa:"#172249",ac:"#00d4aa",ad:"#00a88622",ag:"#00d4aa10",gd:"#d4a017",pr:"#8b5cf6",rd:"#ef4444",bl:"#3b82f6",gn:"#10b981",cy:"#06b6d4",pk:"#ec4899",or:"#f97316",tx:"#e2e8f0",td:"#7085a8",tm:"#3a4c66",wh:"#fff",bk:"#000"};
 const FN="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace";
@@ -454,6 +454,56 @@ export default function Auralith369(){
       }catch(error){reject(error);}
     });
 
+    const capturePng=async(options={})=>{
+      const CAPTURE_MAX_DIMENSION=2048,CAPTURE_MAX_BYTES=4*1024*1024;
+      const requested=Number(options?.maxDimension??CAPTURE_MAX_DIMENSION);
+      if(!Number.isFinite(requested))throw new Error("AURALITH_SDK_CAPTURE_DIMENSION_INVALID");
+      const maxDimension=Math.round(cl(requested,256,CAPTURE_MAX_DIMENSION));
+      const source=renderCompositeCanvas({checker:0});
+      if(!source?.width||!source?.height)throw new Error("AURALITH_SDK_CAPTURE_EMPTY");
+      const scale=Math.min(1,maxDimension/Math.max(source.width,source.height));
+      const width=Math.max(1,Math.round(source.width*scale)),height=Math.max(1,Math.round(source.height*scale));
+      let canvas=source;
+      if(width!==source.width||height!==source.height){
+        canvas=document.createElement("canvas");
+        canvas.width=width;canvas.height=height;
+        const ctx=canvas.getContext("2d");
+        if(!ctx)throw new Error("AURALITH_SDK_CAPTURE_CONTEXT_UNAVAILABLE");
+        ctx.drawImage(source,0,0,width,height);
+      }
+      const blob=await new Promise((resolve,reject)=>{
+        if(typeof canvas.toBlob==="function"){
+          canvas.toBlob(value=>value?resolve(value):reject(new Error("AURALITH_SDK_CAPTURE_FAILED")),"image/png");
+          return;
+        }
+        try{
+          const data=canvas.toDataURL("image/png"),comma=data.indexOf(","),binary=atob(data.slice(comma+1)),bytes=new Uint8Array(binary.length);
+          for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+          resolve(new Blob([bytes],{type:"image/png"}));
+        }catch(error){reject(error);}
+      });
+      if(blob.size>CAPTURE_MAX_BYTES)throw new Error("AURALITH_SDK_CAPTURE_TOO_LARGE");
+      const arrayBuffer=await blob.arrayBuffer(),bytes=new Uint8Array(arrayBuffer);
+      let binary="";
+      const chunk=0x8000;
+      for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+      const dataBase64=btoa(binary),dataUrl="data:image/png;base64,"+dataBase64;
+      const digest=await crypto.subtle.digest("SHA-256",arrayBuffer);
+      const sha256="sha256:"+Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,"0")).join("");
+      return {
+        schema:"auralith.capture.png.v1",
+        authority:"canvas2d",
+        projectName,
+        mimeType:"image/png",
+        width,
+        height,
+        bytes:blob.size,
+        sha256,
+        dataBase64,
+        dataUrl,
+      };
+    };
+
     const resolveFx=id=>{
       const key=String(id||"").trim().toLowerCase();
       const found=Object.entries(PF).find(([fxId,fx])=>fxId.toLowerCase()===key||sdkSlug(fx.n)===key||String(fx.n).toLowerCase()===key);
@@ -611,6 +661,7 @@ export default function Auralith369(){
       },
 
       exportPng:()=>pngBlob(),
+      exportCapture:options=>capturePng(options),
       exportProject:()=>buildProjectPayload(),
     };
 

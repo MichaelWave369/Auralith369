@@ -212,7 +212,7 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.match(source,/registerTool/);
   assert.match(source,/readOnlyHint/);
   assert.match(source,/consequentialHint/);
-  assert.match(source,/auralith\\.site-tools\\.v1/);
+  assert.match(source,/auralith\.site-tools\.v1/);
   assert.match(source,/payloadIncluded/);
   assert.doesNotMatch(source,/\beval\s*\(/);
   assert.doesNotMatch(source,/new Function\s*\(/);
@@ -221,5 +221,5 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.doesNotMatch(source,/WebGLRenderingContext/);
 
   assert.match(app,/installAuralithSiteToolsGlobal/);
-  assert.match(editor,/APP_VERSION="v0\\.7\\.1-alpha"/);
+  assert.match(editor,/APP_VERSION="v0\.7\.1-alpha"/);
 });

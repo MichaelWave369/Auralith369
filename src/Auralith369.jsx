@@ -587,7 +587,12 @@ export default function Auralith369(){
     const adapter={
       capabilities:()=>({
         appVersion:APP_VERSION,
-        bridge:{domistika:{available:Boolean(window.auralithDomistikaBridge?.receive)}},
+        bridge:{domistika:{
+          available:Boolean(window.auralithDomistikaBridge?.receive),
+          versions:[1,2],
+          semanticOverlays:true,
+          pendingVersion:Number(pendingDomistikaTransferRef.current?.version||0)||null,
+        }},
       }),
       projectInfo:()=>({
         name:projectName,
@@ -600,7 +605,15 @@ export default function Auralith369(){
       projectSerialize:()=>buildProjectPayload(),
       projectOpen:async input=>({ok:Boolean(await loadProject(projectFileFromInput(input)))}),
 
-      imageOpen:async(input,options={})=>loadImg(imageFileFromInput(input,options)),
+      imageOpen:async(input,options={})=>{
+        const result=await loadImg(imageFileFromInput(input,options));
+        const transfer=pendingDomistikaTransferRef.current;
+        if(transfer?.version===2&&typeof input==="string"&&input===transfer.image){
+          const bridge=await importDomistikaOverlays(transfer);
+          return {...result,bridge};
+        }
+        return result;
+      },
       imageCurrent:()=>({
         loaded:!!hasI,
         width:sz.w,
@@ -709,15 +722,38 @@ export default function Auralith369(){
 
       bridgeReceive:async()=>{
         if(!window.auralithDomistikaBridge?.receive)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
-        return window.auralithDomistikaBridge.receive();
+        const transfer=await window.auralithDomistikaBridge.receive();
+        pendingDomistikaTransferRef.current=transfer;
+        return transfer;
       },
       bridgeGet:async()=>{
         if(!window.auralithDomistikaBridge?.get)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
-        return window.auralithDomistikaBridge.get();
+        const transfer=await window.auralithDomistikaBridge.get();
+        if(transfer)pendingDomistikaTransferRef.current=transfer;
+        return transfer;
+      },
+      bridgeImport:async()=>{
+        if(!window.auralithDomistikaBridge?.receive)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        const transfer=await window.auralithDomistikaBridge.receive();
+        if(!transfer)throw new Error("AURALITH_SDK_DOMISTIKA_TRANSFER_MISSING");
+        pendingDomistikaTransferRef.current=transfer;
+        const opened=await loadImg(imageFileFromInput(transfer.image,{name:String(transfer.name||"Domistika artwork")+".webp"}));
+        const bridge=await importDomistikaOverlays(transfer);
+        return {
+          ok:true,
+          version:Number(transfer.version||1),
+          projectName:String(transfer.name||opened.name||"Domistika artwork"),
+          width:opened.width,
+          height:opened.height,
+          overlayCount:bridge.overlayCount,
+          protectedLayerIds:bridge.protectedLayerIds,
+          contentHash:String(transfer.contentHash||""),
+        };
       },
       bridgeClear:()=>{
         if(!window.auralithDomistikaBridge?.clear)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
         window.auralithDomistikaBridge.clear();
+        pendingDomistikaTransferRef.current=null;
         return true;
       },
 

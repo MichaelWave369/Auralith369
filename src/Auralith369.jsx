@@ -356,6 +356,63 @@ export default function Auralith369(){
   const applyStyleCard=card=>{lastStyleRef.current={id:card.id,name:card.n,intent:card.intent||null};setProjectName(p=>p||card.id);if(card.fg)setFg(card.fg);if(card.bg)setBgC(card.bg);if(card.adj)sAdj(card.adj);if(card.ovl)sOvl(card.ovl);if(card.oOp)sOOp(card.oOp);const lut=LUTS.find(l=>l.n===card.lut),gm=GRAD_MAPS.find(g=>g.n===card.grad),pl=PLUGINS.find(p=>p.name===card.plugin);setTimeout(()=>{if(lut)applyLUT(lut);if(gm)applyGradMap(gm);if(pl)applyPlugin(pl);comp();},20);flash("Style: "+card.n);};
   const forgePoster=pr=>{const old=renderCompositeCanvas({checker:0,background:bg_});save("Poster Forge");const c=document.createElement("canvas");c.width=pr.w;c.height=pr.h;const x=c.getContext("2d");const grd=x.createLinearGradient(0,0,pr.w,pr.h);grd.addColorStop(0,bg_);grd.addColorStop(.62,"#090e1b");grd.addColorStop(1,"#0d142c");x.fillStyle=grd;x.fillRect(0,0,pr.w,pr.h);const margin=Math.round(Math.min(pr.w,pr.h)*.08),capH=Math.round(pr.h*.72),sc=Math.min((pr.w-margin*2)/old.width,capH/old.height),dw=old.width*sc,dh=old.height*sc,dx=(pr.w-dw)/2,dy=Math.round(pr.h*LAM*.42-dh/2);x.shadowColor="#00000088";x.shadowBlur=24;x.drawImage(old,dx,Math.max(margin*1.3,dy),dw,dh);x.shadowBlur=0;x.strokeStyle=fg;x.globalAlpha=.45;x.lineWidth=2;x.strokeRect(margin,margin,pr.w-margin*2,pr.h-margin*2);x.globalAlpha=.18;[LAM*LAM,LAM,1-LAM*LAM].forEach(f=>{x.beginPath();x.moveTo(pr.w*f,margin);x.lineTo(pr.w*f,pr.h-margin);x.stroke();});x.globalAlpha=1;x.fillStyle=fg;x.font=`700 ${Math.round(pr.w*.055)}px ${FN}`;x.fillText(posterTitle||"PHI369",margin,pr.h-margin*1.55);x.fillStyle=C.tx;x.font=`${Math.round(pr.w*.022)}px ${FN}`;x.fillText(posterSub||"Sovereign image alchemy",margin,pr.h-margin*.9);x.fillStyle=C.tm;x.font=`${Math.round(pr.w*.015)}px ${FN}`;x.textAlign="right";x.fillText(`Φ=${PHI.toFixed(3)} · 369 · ${APP_VERSION}`,pr.w-margin,pr.h-margin*.9);ld.current={1:c};mks.current={};origS.current=null;setSz({w:pr.w,h:pr.h});setLayers([{id:1,n:`Poster Forge · ${pr.n}`,vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setGuides([{type:"h",pos:Math.round(pr.h*LAM)},{type:"v",pos:Math.round(pr.w*LAM)}]);sOvl("phi");sOOp(.35);setTimeout(comp,60);flash(`Poster: ${pr.n}`);};
   const hashText=async s=>{const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");};
+  const createObservationReceipt=async(event,evidence={})=>{
+    const transfer=pendingDomistikaTransferRef.current;
+    const creative={
+      creativeManifestHash:String(transfer?.contentHash||"")||null,
+      baseContentHash:String(transfer?.baseContentHash||"")||null,
+      protectedOverlayHashes:Array.isArray(transfer?.overlays)
+        ? transfer.overlays.map(item=>String(item?.contentHash||"")).filter(Boolean)
+        : [],
+      sourceTransferVersion:Number(transfer?.version||0)||null,
+    };
+    const payload={
+      kind:"auralith.observation-receipt",
+      schema:"auralith.observation-receipt.v1",
+      version:APP_VERSION,
+      event:String(event||"observation"),
+      createdAt:new Date().toISOString(),
+      projectName,
+      size:{...sz},
+      creative,
+      capture:evidence?.capture||null,
+      bridge:evidence?.bridge||null,
+      finishing:{
+        style:lastStyleRef.current,
+        adjustments:{...adj},
+        overlay:{id:ovl,opacity:oOp},
+        historyTail:hNm.slice(-18),
+      },
+      authority:{
+        observationOnly:true,
+        renderAuthorized:false,
+        publishAuthorized:false,
+        automaticImportAuthorized:false,
+      },
+    };
+    const receiptHash="sha256:"+await hashText(JSON.stringify(payload));
+    payload.receiptId=receiptHash;
+    payload.receiptHash=receiptHash;
+    setLastReceipt(payload);
+    try{
+      const shared={
+        schema:"parallax.creative-evidence.v2",
+        profile:"parallax.creative-interop.v2",
+        createdAt:payload.createdAt,
+        event:payload.event,
+        projectName,
+        creativeManifestHash:creative.creativeManifestHash,
+        baseContentHash:creative.baseContentHash,
+        protectedOverlayHashes:creative.protectedOverlayHashes,
+        auralithCaptureHash:payload.capture?.sha256||null,
+        auralithCaptureSchema:payload.capture?.schema||null,
+        auralithReceiptHash:receiptHash,
+        auralithReceiptSchema:payload.schema,
+      };
+      localStorage.setItem("parallax-creative-evidence-v2",JSON.stringify(shared));
+    }catch(error){console.warn("[Auralith369] Could not persist creative evidence",{error});}
+    return payload;
+  };
   const exportReceipt=async()=>{try{const image=renderCompositeCanvas({checker:0,background:eF==="JPEG"?"#fff":null}).toDataURL("image/png"),imageHash=await hashText(image),payload={kind:"auralith.receipt",version:APP_VERSION,createdAt:new Date().toISOString(),projectName,size:sz,constants:{PHI,LAM,Cstar:.809017,OmegaC:.376},imageHash,layers:layers.map(l=>({id:l.id,name:l.n,visible:!!l.vis,opacity:l.op,blend:l.bl,mask:!!l.mask,blendIf:[l.biLo,l.biHi],fx:l.fx,semanticRole:l.semanticRole||null,styleProtected:!!l.styleProtected,bridgeOverlay:!!l.bridgeOverlay,sourceLayerId:l.sourceLayerId||null,sourceContentHash:l.sourceContentHash||null})),adjustments:adj,overlay:{id:ovl,opacity:oOp},gpuLab:{enabled:!!gpuEnabled,bypassed:!!gpuBypass,activePresetId:activeGpuPresetId,activePresetName:gpuPresetName,presetDirty:!!gpuPresetDirty,settings:normalizeGpuLabSettings(gpuSettings)},history:hNm.slice(-36),export:{format:eF,quality:eQ}};payload.receiptId=await hashText(JSON.stringify(payload));setLastReceipt(payload);downloadBlob(`${projectName||"auralith369"}.auralith-receipt.json`,"application/json",JSON.stringify(payload,null,2));flash("Receipt exported");return payload;}catch(e){console.error(e);flash("Receipt failed");return null;}};
   const captureVersion=()=>{const img=renderCompositeCanvas({checker:0}).toDataURL("image/png");setVersions(p=>[{name:`Version ${p.length+1}`,at:new Date().toISOString(),size:{...sz},img},...p].slice(0,9));flash("Version captured");};
   const restoreVersion=async(v)=>{try{save("Restore Version");const c=await canvasFromURL(v.img);ld.current={1:c};mks.current={};origS.current=null;setSz(v.size||{w:c.width,h:c.height});setLayers([{id:1,n:v.name||"Restored Version",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setTimeout(comp,60);flash("Version restored");}catch(e){console.error(e);flash("Restore failed");}};

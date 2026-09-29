@@ -28,3 +28,14 @@ When Auralith369 opens at `#domistika-import`, the receiver offers:
 ## Boundary
 
 Bridge v1 is a visual-reference and atmosphere handoff. It does not silently inject pixels into an Auralith project or apply filters without the user's action. A deeper governed project-ingestion path can be added later after the Auralith project schema defines a stable imported-image contract.
+
+
+## Creative Bridge v2
+
+Auralith v0.7.3-alpha also supports `parallax-creative-bridge` v2.
+
+v2 keeps the v1 local-first, explicit-receive model while adding hash-bound protected semantic overlays for Domistika `type` and `motion-ignore` layers.
+
+Auralith reads the v2 key first and falls back to v1.
+
+See [Creative Bridge v2](CREATIVE_BRIDGE_V2_V073.md).

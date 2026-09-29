@@ -199,3 +199,12 @@ SDK METHOD != ARBITRARY EXECUTION
 GPU PREVIEW != PROJECT AUTHORITY
 BRIDGE TRANSPORT != TRUST BYPASS
 ```
+
+
+## Native WebMCP adapter
+
+Starting in Auralith369 v0.7.1-alpha, WebMCP-aware browsers can expose a curated site-tool layer above this SDK.
+
+The site tools do not form a second workstation API. They call the methods documented above and preserve the same Canvas/GPU/bridge authority boundaries.
+
+See [Native WebMCP Site Tools v0.7.1-alpha](WEBMCP_SITE_TOOLS_V071.md).

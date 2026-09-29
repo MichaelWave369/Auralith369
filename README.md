@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.7.0-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.7.1-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -17,6 +17,26 @@
 Auralith369 is a public-alpha creative workstation by PHI369 Labs for image editing, poster forging, style cards, manifests, and auditable creative receipts.
 
 > ⚠️ **Alpha status:** This is alpha software. Auralith369 runs locally in your browser. Avoid opening untrusted `.auralith` project files until import validation is fully hardened. No warranty; MIT licensed.
+
+## v0.7.1-alpha — Native WebMCP Site Tools
+
+Auralith369 now exposes a compact native WebMCP tool layer over `window.Auralith`.
+
+```text
+browser agent
+→ WebMCP
+→ Auralith site tools
+→ stable SDK
+→ existing finishing workstation
+```
+
+The registered site tools cover live capabilities, command search/execution, layers, FX, LUTs, Style Cards, GPU cartridges, global adjustments, verified Domistika transfers, and creative receipts.
+
+Domistika bridge site tools return metadata summaries and deliberately omit the base64 artwork payload from agent context.
+
+Normal browsers without WebMCP continue to run Auralith unchanged.
+
+See [Native WebMCP Site Tools](docs/WEBMCP_SITE_TOOLS_V071.md) and [v0.7.1-alpha Release Notes](RELEASE_NOTES_v0.7.1-alpha.md).
 
 ## v0.7.0-alpha — Stable SDK v0.1
 

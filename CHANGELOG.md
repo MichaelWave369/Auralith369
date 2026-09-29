@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1-alpha
+- Added native WebMCP site tools over the frozen `window.Auralith` SDK.
+- Added compact capability and semantic command discovery for browser agents.
+- Added bounded native layer, FX, LUT, Style, GPU cartridge, and adjustment operations.
+- Added verified Domistika bridge tools that omit base64 artwork payloads from agent context.
+- Added lightweight creative-receipt export summaries.
+- Added WebMCP lifecycle, annotation, and authority-boundary tests.
+- Preserved Canvas 2D project authority and GPU Lab preview semantics.
+
+
 ## 0.7.0-alpha
 - Added frozen `window.Auralith` stable SDK v0.1.
 - Added live `Auralith.capabilities()` contract.

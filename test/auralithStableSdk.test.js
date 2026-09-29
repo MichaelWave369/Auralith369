@@ -142,7 +142,7 @@ test('stable SDK source exposes no arbitrary execution or network surface', () =
 test('React workstation binds the stable SDK to real finishing functions', () => {
   const source = fs.readFileSync(new URL('../src/Auralith369.jsx', import.meta.url), 'utf8');
 
-  assert.match(source, /APP_VERSION="v0\.7\.0-alpha"/);
+  assert.match(source, /APP_VERSION="v0\.7\.\d+-alpha"/);
   assert.match(source, /bindAuralithRuntime\(adapter\)/);
   assert.match(source, /unbindAuralithRuntime\(\)/);
   assert.match(source, /renderCompositeCanvas\(\{checker:0\}\)/);

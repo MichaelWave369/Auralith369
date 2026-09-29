@@ -15,9 +15,9 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
 
   assert.equal(target.Auralith, api);
   assert.equal(api.schema, 'auralith.sdk.v1');
-  assert.equal(api.sdkVersion, '0.1.1');
+  assert.equal(api.sdkVersion, '0.1.2');
   assert.equal(AURALITH_SDK_SCHEMA, 'auralith.sdk.v1');
-  assert.equal(AURALITH_SDK_VERSION, '0.1.1');
+  assert.equal(AURALITH_SDK_VERSION, '0.1.2');
   assert.equal(Object.isFrozen(api), true);
   assert.equal(Object.isFrozen(api.layers), true);
   assert.equal(Object.isFrozen(api.commands), true);
@@ -27,7 +27,7 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
   const fakePng = new Blob(['png'], { type: 'image/png' });
   const adapter = {
     capabilities: () => ({
-      appVersion: 'v0.7.2-alpha',
+      appVersion: 'v0.7.3-alpha',
       bridge: { domistika: { available: true } },
     }),
     projectInfo: () => ({
@@ -44,7 +44,7 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
     imageCurrent: () => ({ loaded: true, width: 1200, height: 800 }),
     layersList: () => [
       { id: 1, name: 'Base', kind: 'pixel', visible: true, opacity: 1, blend: 'normal' },
-      { id: 2, name: 'Finish', kind: 'pixel', visible: true, opacity: 0.8, blend: 'screen' },
+      { id: 2, name: 'Title', kind: 'pixel', visible: true, opacity: 1, blend: 'normal', semanticRole: 'type', styleProtected: true, bridgeOverlay: true, sourceLayerId: 'layer-title' },
     ],
     layersAdd: name => ({ id: 3, name }),
     layersActivate: id => ({ id, name: 'Base' }),
@@ -67,8 +67,12 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
     actionsRun: id => { calls.push(['action', id]); return { id, name: 'Finish Pass', stepCount: 2 }; },
     receiptLatest: () => ({ receiptId: 'sha256:test-receipt' }),
     receiptExport: async () => ({ receiptId: 'sha256:new-receipt' }),
-    bridgeReceive: async () => ({ protocol: 'parallax-creative-bridge', source: 'domistika' }),
-    bridgeGet: async () => ({ protocol: 'parallax-creative-bridge', source: 'domistika' }),
+    bridgeReceive: async () => ({ protocol: 'parallax-creative-bridge', version: 2, source: 'domistika' }),
+    bridgeGet: async () => ({ protocol: 'parallax-creative-bridge', version: 2, source: 'domistika' }),
+    bridgeImport: async () => {
+      calls.push(['bridge-import']);
+      return { ok: true, version: 2, overlayCount: 1, protectedLayerIds: [2], contentHash: 'sha256:manifest' };
+    },
     bridgeClear: () => true,
     exportPng: async () => fakePng,
     exportCapture: async ({ maxDimension } = {}) => ({
@@ -90,7 +94,7 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
   assert.equal(api.ready(), true);
 
   const caps = api.capabilities();
-  assert.equal(caps.appVersion, 'v0.7.2-alpha');
+  assert.equal(caps.appVersion, 'v0.7.3-alpha');
   assert.equal(caps.layers.count, 2);
   assert.equal(caps.fx.count, 1);
   assert.equal(caps.lut.count, 1);
@@ -147,6 +151,16 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
 
   const bridge = await api.bridge.domistika.receive();
   assert.equal(bridge.source, 'domistika');
+  assert.equal(bridge.version, 2);
+
+  const imported = await api.bridge.domistika.import();
+  assert.equal(imported.version, 2);
+  assert.equal(imported.overlayCount, 1);
+  assert.deepEqual(imported.protectedLayerIds, [2]);
+  assert.deepEqual(calls.at(-1), ['bridge-import']);
+
+  const importCommand = await api.commands.execute('bridge.domistika.import');
+  assert.equal(importCommand.overlayCount, 1);
 
   unbindAuralithRuntime(adapter);
   assert.equal(api.ready(), false);
@@ -182,6 +196,11 @@ test('React workstation binds the stable SDK to real finishing functions', () =>
   assert.match(source, /gpuCartridges:/);
   assert.match(source, /receiptExport:/);
   assert.match(source, /bridgeReceive:/);
+  assert.match(source, /bridgeImport:/);
+  assert.match(source, /styleProtected/);
+  assert.match(source, /bridgeOverlay/);
+  assert.match(source, /importDomistikaOverlays/);
+  assert.match(source, /protectedLayers.forEach(layer=>drawLayerTo(o,layer))/);
   assert.match(source, /exportPng:/);
   assert.match(source, /exportCapture:/);
   assert.match(source, /AURALITH_SDK_CAPTURE_TOO_LARGE/);

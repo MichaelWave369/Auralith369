@@ -405,6 +405,10 @@ export default function Auralith369(){
         glow:!!layer.fx?.glow,
         glowSize:Number(layer.fx?.glowSize??0),
       },
+      semanticRole:layer.semanticRole?String(layer.semanticRole):null,
+      styleProtected:!!layer.styleProtected,
+      bridgeOverlay:!!layer.bridgeOverlay,
+      sourceLayerId:layer.sourceLayerId?String(layer.sourceLayerId):null,
     }:null;
 
     const imageFileFromInput=(input,options={})=>{
@@ -502,6 +506,62 @@ export default function Auralith369(){
         sha256,
         dataBase64,
         dataUrl,
+      };
+    };
+
+    const importDomistikaOverlays=async transfer=>{
+      if(!transfer||transfer.version!==2||!Array.isArray(transfer.overlays)){
+        return {version:Number(transfer?.version||1),overlayCount:0,protectedLayerIds:[]};
+      }
+      const base=ld.current[1];
+      if(!base)throw new Error("AURALITH_SDK_DOMISTIKA_BASE_MISSING");
+      const imported=[];
+      for(const overlay of transfer.overlays.slice(0,16)){
+        if(!overlay?.image||!["type","motion-ignore"].includes(overlay.role))continue;
+        let canvas=await canvasFromURL(overlay.image);
+        if(canvas.width!==base.width||canvas.height!==base.height){
+          const scaled=document.createElement("canvas");
+          scaled.width=base.width;scaled.height=base.height;
+          scaled.getContext("2d").drawImage(canvas,0,0,base.width,base.height);
+          canvas=scaled;
+        }
+        const id=nid.current++;
+        ld.current[id]=canvas;
+        imported.push({
+          id,
+          n:String(overlay.name||"Protected Domistika overlay").slice(0,120),
+          vis:1,
+          op:cl(Number(overlay.opacity??1),0,1),
+          bl:BLN.includes(String(overlay.blendMode||"normal"))?String(overlay.blendMode||"normal"):"normal",
+          mask:0,biLo:0,biHi:255,fx:{...dfx},
+          semanticRole:String(overlay.role),
+          styleProtected:overlay.preserveDuringStyle!==false,
+          bridgeOverlay:true,
+          bridgeVersion:2,
+          sourceLayerId:String(overlay.sourceLayerId||""),
+          sourceOverlayId:String(overlay.id||""),
+          sourceContentHash:String(overlay.contentHash||""),
+          semantic:Array.isArray(overlay.semantic)?overlay.semantic.slice(0,16):[],
+        });
+      }
+      const oldBridgeIds=new Set(layers.filter(layer=>layer.bridgeOverlay).map(layer=>layer.id));
+      oldBridgeIds.forEach(id=>{delete ld.current[id];delete mks.current[id];});
+      setLayers(current=>{
+        const baseLayers=current.filter(layer=>!layer.bridgeOverlay).map(layer=>layer.id===1?{
+          ...layer,
+          bridgeBase:true,
+          bridgeVersion:2,
+          sourceContentHash:String(transfer.baseContentHash||""),
+        }:layer);
+        return [...baseLayers,...imported];
+      });
+      setAL(1);
+      setTimeout(()=>{comp();save("Domistika semantic overlays");},30);
+      return {
+        version:2,
+        overlayCount:imported.length,
+        protectedLayerIds:imported.map(layer=>layer.id),
+        contentHash:String(transfer.contentHash||""),
       };
     };
 

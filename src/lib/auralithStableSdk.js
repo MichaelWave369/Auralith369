@@ -1,4 +1,4 @@
-export const AURALITH_SDK_VERSION = '0.1.0';
+export const AURALITH_SDK_VERSION = '0.1.1';
 export const AURALITH_SDK_SCHEMA = 'auralith.sdk.v1';
 
 let runtimeAdapter = null;
@@ -209,6 +209,21 @@ async function exportPng() {
   return result;
 }
 
+async function exportCapture(options = {}) {
+  if (!options || typeof options !== 'object' || Array.isArray(options)) {
+    throw new Error('AURALITH_SDK_CAPTURE_OPTIONS_INVALID');
+  }
+  const result = await requireMethod('exportCapture')(options);
+  emit('sdk-export', {
+    kind: 'capture',
+    bytes: result?.bytes || null,
+    width: result?.width || null,
+    height: result?.height || null,
+    sha256: result?.sha256 || null,
+  });
+  return cloneFrozen(result);
+}
+
 async function exportProject() {
   const result = await requireMethod('exportProject')();
   emit('sdk-export', { kind: 'project' });
@@ -268,6 +283,13 @@ function capabilities() {
       available: typeof runtimeAdapter?.receiptExport === 'function',
       latestReceiptId: receiptLatest()?.receiptId || null,
     },
+    capture: {
+      available: typeof runtimeAdapter?.exportCapture === 'function',
+      schema: 'auralith.capture.png.v1',
+      authority: 'canvas2d',
+      maxDimension: 2048,
+      maxBytes: 4 * 1024 * 1024,
+    },
     bridge: cloneFrozen(base?.bridge || { domistika: { available: false } }),
   };
   return cloneFrozen(snapshot);
@@ -302,6 +324,13 @@ function baseCommands() {
       category: 'Export',
       description: 'Create a PNG Blob from the authoritative Canvas 2D composite.',
       keywords: ['png', 'image', 'export'],
+    },
+    {
+      id: 'export.capture',
+      label: 'Capture Finished PNG',
+      category: 'Export',
+      description: 'Return a bounded structured PNG capture from the authoritative Canvas 2D composite.',
+      keywords: ['capture', 'png', 'image', 'agent', 'readback', 'finished'],
     },
     {
       id: 'export.project',
@@ -423,6 +452,7 @@ function commandExecute(id, args = {}) {
   if (key === 'bridge.domistika.receive') return bridgeReceive();
   if (key === 'receipt.export') return receiptExport();
   if (key === 'export.png') return exportPng();
+  if (key === 'export.capture') return exportCapture(args || {});
   if (key === 'export.project') return exportProject();
   if (key.startsWith('fx.')) return fxApply(key.slice(3));
   if (key.startsWith('lut.')) return lutApply(key.slice(4));
@@ -506,6 +536,7 @@ const API = freezeDeep({
 
   export: {
     png: exportPng,
+    capture: exportCapture,
     project: exportProject,
     receipt: receiptExport,
   },

@@ -11,7 +11,7 @@ The facade sits on top of the existing React workstation. It does not replace th
 ## Contract
 
 ```text
-SDK version: 0.1.1
+SDK version: 0.1.2
 schema:      auralith.sdk.v1
 app:         v0.7.0-alpha
 ```
@@ -138,6 +138,20 @@ await Auralith.receipts.export()
 ```
 
 Receipt export calls the existing Auralith receipt generator, including its composite hash and workstation state record.
+
+### Verified semantic Domistika import
+
+Starting in v0.7.3-alpha, the stable SDK adds:
+
+```js
+await Auralith.bridge.domistika.import()
+```
+
+The method verifies the current Creative Bridge package, opens the base artwork, imports protected semantic overlays as separate layers, and leaves the base selected for finishing.
+
+The existing `receive()` and `image.open(payload.image)` sequence remains compatible and automatically installs verified v2 overlays.
+
+See [Creative Bridge v2](CREATIVE_BRIDGE_V2_V073.md).
 
 ## Domistika bridge
 

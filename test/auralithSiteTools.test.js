@@ -240,7 +240,7 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.match(source,/auralith\.site-tools\.v1/);
   assert.match(source,/payloadIncluded/);
   assert.match(source,/auralith_capture_png/);
-  assert.match(source,/dataBase64/);
+  assert.match(source,/const \{ dataUrl, \.\.\.portable \} = capture/);
   assert.doesNotMatch(source,/\beval\s*\(/);
   assert.doesNotMatch(source,/new Function\s*\(/);
   assert.doesNotMatch(source,/\bfetch\s*\(/);

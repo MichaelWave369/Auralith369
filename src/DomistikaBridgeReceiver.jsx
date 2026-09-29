@@ -23,6 +23,24 @@ function readBridgeCandidate() {
   return null;
 }
 
+function ArtworkStack({ payload, alt }) {
+  const overlays = Array.isArray(payload?.overlays) ? payload.overlays.slice(0, 16) : [];
+  return (
+    <div className="domistika-bridge-art-stack">
+      <img className="domistika-bridge-art-base" src={payload.image} alt={alt} />
+      {overlays.map((overlay, index) => (
+        <img
+          key={overlay.id || `overlay-${index}`}
+          className="domistika-bridge-art-overlay"
+          src={overlay.image}
+          alt=""
+          aria-hidden="true"
+        />
+      ))}
+    </div>
+  );
+}
+
 function downloadArtwork(payload) {
   const anchor = document.createElement('a');
   const safeName = String(payload.name || 'domistika-artwork')
@@ -123,7 +141,7 @@ export default function DomistikaBridgeReceiver() {
             </div>
             <button type="button" onClick={() => setReferenceVisible(false)} aria-label="Close reference">×</button>
           </div>
-          <img src={payload.image} alt={payload.name || 'Artwork transferred from Domistika'} />
+          <ArtworkStack payload={payload} alt={payload.name || 'Artwork transferred from Domistika'} />
           <div className="domistika-bridge-reference-actions">
             <button type="button" onClick={() => setOpen(true)}>Bridge controls</button>
             <button type="button" onClick={() => downloadArtwork(payload)}>Save image</button>
@@ -146,7 +164,7 @@ export default function DomistikaBridgeReceiver() {
 
             <div className="domistika-bridge-body">
               <div className="domistika-bridge-preview">
-                <img src={payload.image} alt={payload.name || 'Artwork transferred from Domistika'} />
+                <ArtworkStack payload={payload} alt={payload.name || 'Artwork transferred from Domistika'} />
               </div>
               <div className="domistika-bridge-info">
                 <dl>

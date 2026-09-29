@@ -11,7 +11,7 @@ The facade sits on top of the existing React workstation. It does not replace th
 ## Contract
 
 ```text
-SDK version: 0.1.0
+SDK version: 0.1.1
 schema:      auralith.sdk.v1
 app:         v0.7.0-alpha
 ```
@@ -162,6 +162,22 @@ const receipt = await Auralith.export.receipt()
 `export.png()` returns a PNG Blob generated from the authoritative Canvas 2D composite.
 
 It intentionally does not silently capture the optional GPU preview.
+
+### Structured capture
+
+Starting in Auralith369 v0.7.2-alpha, the stable SDK adds:
+
+```js
+const capture = await Auralith.export.capture({
+  maxDimension: 2048
+})
+```
+
+The result is a bounded `auralith.capture.png.v1` payload with Canvas 2D authority, dimensions, byte count, SHA-256, base64, and data URL.
+
+The existing `Auralith.export.png()` Blob contract remains unchanged.
+
+See [Agent Capture v0.7.2](AGENT_CAPTURE_V072.md).
 
 ## Commands
 

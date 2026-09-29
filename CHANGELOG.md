@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.2-alpha
+- Added `Auralith.export.capture()` structured PNG readback for agents.
+- Added bounded capture limits: 2048 px maximum dimension and 4 MiB PNG payload.
+- Added SHA-256 over actual capture bytes.
+- Added explicit `authority: canvas2d` capture provenance.
+- Added native `auralith_capture_png` WebMCP read tool.
+- Preserved `Auralith.export.png()` Blob behavior for browser compatibility.
+- Preserved GPU Lab as non-authoritative preview.
+- Added Native Creative Chain Acceptance 001 for the live Domistika → Auralith workflow.
+
+
 ## 0.7.1-alpha
 - Added native WebMCP site tools over the frozen `window.Auralith` SDK.
 - Added compact capability and semantic command discovery for browser agents.

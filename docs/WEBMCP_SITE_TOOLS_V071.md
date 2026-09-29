@@ -183,6 +183,29 @@ which uses the existing verified bridge path.
 
 WebMCP does not create an integrity bypass.
 
+## Finished-art capture
+
+Starting in v0.7.2-alpha, the read-only site tool:
+
+```text
+auralith_capture_png
+```
+
+returns the authoritative Canvas 2D finished artwork as a bounded PNG readback.
+
+The response includes:
+
+- capture schema
+- `authority: canvas2d`
+- project name
+- MIME type
+- dimensions
+- byte count
+- SHA-256
+- one `dataBase64` payload
+
+The duplicate data URL is intentionally omitted from the WebMCP response.
+
 ## Creative receipt
 
 \`\`\`text
@@ -255,9 +278,9 @@ COMMAND EXECUTION != ARBITRARY JAVASCRIPT
 ## Contracts
 
 \`\`\`text
-Auralith app:      v0.7.1-alpha
-Stable SDK:        0.1.0
+Auralith app:      v0.7.2-alpha
+Stable SDK:        0.1.1
 Stable SDK schema: auralith.sdk.v1
-Site tools:        0.1.0
+Site tools:        0.1.1
 Site-tool schema:  auralith.site-tools.v1
 \`\`\`

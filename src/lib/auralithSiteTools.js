@@ -1,4 +1,4 @@
-export const AURALITH_SITE_TOOLS_VERSION = '0.1.0';
+export const AURALITH_SITE_TOOLS_VERSION = '0.1.1';
 export const AURALITH_SITE_TOOLS_SCHEMA = 'auralith.site-tools.v1';
 
 const MAX_SEARCH_RESULTS = 20;
@@ -72,6 +72,7 @@ function slimCapabilities(api) {
     gpu: caps.gpu,
     actions: caps.actions,
     receipts: caps.receipts,
+    capture: caps.capture,
     bridge: caps.bridge,
     commandCount: api.commands.list().length,
   };
@@ -325,6 +326,25 @@ function makeTools(api) {
         requireReady(api);
         const transfer = await api.bridge.domistika.receive();
         return ok({ transfer: transferSummary(transfer) });
+      },
+    },
+    {
+      name: 'auralith_capture_png',
+      title: 'Capture finished Auralith PNG',
+      description: 'Read back the authoritative Canvas 2D finished artwork as a bounded PNG payload for visual inspection. Returns metadata plus base64 PNG data and does not trigger a download.',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          maxDimension: { type: 'integer', minimum: 256, maximum: 2048, default: 2048 },
+        },
+        additionalProperties: false,
+      },
+      annotations: { readOnlyHint: true, untrustedContentHint: false, consequentialHint: false },
+      execute: async ({ maxDimension = 2048 } = {}) => {
+        requireReady(api);
+        const capture = await api.export.capture({ maxDimension: clamp(maxDimension, 256, 2048) });
+        const { dataUrl, ...portable } = capture || {};
+        return JSON.stringify({ ok: true, capture: portable });
       },
     },
     {

@@ -556,7 +556,7 @@ export default function Auralith369(){
       const dataBase64=btoa(binary),dataUrl="data:image/png;base64,"+dataBase64;
       const digest=await crypto.subtle.digest("SHA-256",arrayBuffer);
       const sha256="sha256:"+Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,"0")).join("");
-      return {
+      const capture={
         schema:"auralith.capture.png.v1",
         authority:"canvas2d",
         projectName,
@@ -567,6 +567,23 @@ export default function Auralith369(){
         sha256,
         dataBase64,
         dataUrl,
+      };
+      const receipt=await createObservationReceipt("capture",{
+        capture:{
+          schema:capture.schema,
+          authority:capture.authority,
+          sha256:capture.sha256,
+          width:capture.width,
+          height:capture.height,
+          bytes:capture.bytes,
+          mimeType:capture.mimeType,
+        },
+      });
+      return {
+        ...capture,
+        receiptId:receipt.receiptId,
+        receiptHash:receipt.receiptHash,
+        receiptSchema:receipt.schema,
       };
     };
 

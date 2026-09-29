@@ -200,7 +200,7 @@ test('React workstation binds the stable SDK to real finishing functions', () =>
   assert.match(source, /styleProtected/);
   assert.match(source, /bridgeOverlay/);
   assert.match(source, /importDomistikaOverlays/);
-  assert.match(source, /protectedLayers.forEach(layer=>drawLayerTo(o,layer))/);
+  assert.ok(source.includes('protectedLayers.forEach(layer=>drawLayerTo(o,layer));'));
   assert.match(source, /exportPng:/);
   assert.match(source, /exportCapture:/);
   assert.match(source, /AURALITH_SDK_CAPTURE_TOO_LARGE/);

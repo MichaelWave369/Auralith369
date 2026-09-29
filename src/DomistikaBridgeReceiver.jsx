@@ -1,20 +1,26 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { verifyCreativeBridgeV1 } from './parallaxBridgeAdapter.js';
+import { verifyCreativeBridge } from './parallaxBridgeAdapter.js';
 import './domistikaBridge.css';
 
-const BRIDGE_KEY = 'parallax-creative-bridge-v1';
+const BRIDGE_KEYS = ['parallax-creative-bridge-v2', 'parallax-creative-bridge-v1'];
 const DOMISTIKA_URL = 'https://michaelwave369.github.io/Domistika/';
 
 function readBridgeCandidate() {
-  try {
-    const payload = JSON.parse(localStorage.getItem(BRIDGE_KEY));
-    if (payload?.protocol !== 'parallax-creative-bridge') return null;
-    if (payload?.source !== 'domistika' || payload?.target !== 'auralith369') return null;
-    if (!String(payload.image || '').startsWith('data:image/')) return null;
-    return payload;
-  } catch {
-    return null;
+  for (const key of BRIDGE_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const payload = JSON.parse(raw);
+      if (payload?.protocol !== 'parallax-creative-bridge') continue;
+      if (payload?.source !== 'domistika' || payload?.target !== 'auralith369') continue;
+      if (![1, 2].includes(payload?.version)) continue;
+      if (!String(payload.image || '').startsWith('data:image/')) continue;
+      return payload;
+    } catch {
+      // Try the next compatible bridge key.
+    }
   }
+  return null;
 }
 
 function downloadArtwork(payload) {
@@ -42,7 +48,7 @@ export default function DomistikaBridgeReceiver() {
       const next = readBridgeCandidate();
       if (!next) return null;
       try {
-        await verifyCreativeBridgeV1(next);
+        await verifyCreativeBridge(next);
         setPayload(next);
         setOpen(true);
         window.dispatchEvent(new CustomEvent('auralith:domistika-bridge', { detail: next }));
@@ -60,14 +66,14 @@ export default function DomistikaBridgeReceiver() {
       }
     };
     if (location.hash === '#domistika-import') void receive();
-    const onStorage = (event) => { if (event.key === BRIDGE_KEY) void receive(); };
+    const onStorage = (event) => { if (BRIDGE_KEYS.includes(event.key)) void receive(); };
     const onHash = () => { if (location.hash === '#domistika-import') void receive(); };
     window.addEventListener('storage', onStorage);
     window.addEventListener('hashchange', onHash);
     window.auralithDomistikaBridge = {
       receive,
       clear: () => {
-        localStorage.removeItem(BRIDGE_KEY);
+        BRIDGE_KEYS.forEach((key) => localStorage.removeItem(key));
         setPayload(null);
         setOpen(false);
         setReferenceVisible(false);
@@ -76,7 +82,7 @@ export default function DomistikaBridgeReceiver() {
       get: async () => {
         const next = readBridgeCandidate();
         if (!next) return null;
-        await verifyCreativeBridgeV1(next);
+        await verifyCreativeBridge(next);
         return next;
       },
     };
@@ -88,7 +94,7 @@ export default function DomistikaBridgeReceiver() {
   }, []);
 
   const clearTransfer = () => {
-    localStorage.removeItem(BRIDGE_KEY);
+    BRIDGE_KEYS.forEach((key) => localStorage.removeItem(key));
     setPayload(null);
     setOpen(false);
     setReferenceVisible(false);
@@ -131,7 +137,7 @@ export default function DomistikaBridgeReceiver() {
             <header>
               <div className="domistika-bridge-mark">D◇A</div>
               <div>
-                <span className="domistika-bridge-kicker">Parallax Creative Bridge v1</span>
+                <span className="domistika-bridge-kicker">Parallax Creative Bridge v{payload.version || 1}</span>
                 <h2 id="domistikaBridgeTitle">Domistika artwork received</h2>
                 <p>Move the Carbon spark into Auralith369 as a visual reference or workspace atmosphere.</p>
               </div>
@@ -148,13 +154,14 @@ export default function DomistikaBridgeReceiver() {
                   <div><dt>Canvas</dt><dd>{payload.canvas ? `${payload.canvas.width} × ${payload.canvas.height}` : 'Unknown'}</dd></div>
                   <div><dt>Symmetry</dt><dd>{payload.symmetry || 'none'}</dd></div>
                   <div><dt>Transfer</dt><dd>{payload.createdAt ? new Date(payload.createdAt).toLocaleString() : 'Local bridge'}</dd></div>
+                  <div><dt>Protected overlays</dt><dd>{Array.isArray(payload.overlays) ? payload.overlays.length : 0}</dd></div>
                 </dl>
                 {palette.length > 0 && (
                   <div className="domistika-bridge-palette" aria-label="Domistika favorite color palette">
                     {palette.map((color) => <span key={color} title={color} style={{ backgroundColor: color }} />)}
                   </div>
                 )}
-                <p className="domistika-bridge-note">The image and metadata came through same-origin browser storage and passed a local SHA-256 integrity check. Nothing was uploaded by the bridge.</p>
+                <p className="domistika-bridge-note">The image and metadata came through same-origin browser storage and passed a local SHA-256 integrity check. Creative Bridge v2 also verifies protected overlay bytes and manifest metadata. Nothing was uploaded by the bridge.</p>
               </div>
             </div>
 

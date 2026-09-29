@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs';
 import {
   normalizeCreativeBridgeV1,
   verifyCreativeBridgeV1,
+  normalizeCreativeBridgeV2,
+  verifyCreativeBridgeV2,
 } from '../src/parallaxBridgeAdapter.js';
 
 const nativePayload = {
@@ -115,5 +117,129 @@ test('Pass 6 rejects missing and substituted hashes', async () => {
   await assert.rejects(
     verifyCreativeBridgeV1({ ...base, contentHash: `sha256:${'0'.repeat(64)}` }),
     /contentHash does not match image bytes/,
+  );
+});
+
+
+const stableValueV2 = (value) => {
+  if (Array.isArray(value)) return value.map(stableValueV2);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.keys(value).sort().map((key) => [key, stableValueV2(value[key])]),
+    );
+  }
+  return value;
+};
+
+const bridgeV2ManifestFixture = (payload) => ({
+  protocol: payload.protocol,
+  version: payload.version,
+  source: payload.source,
+  target: payload.target,
+  createdAt: payload.createdAt,
+  name: payload.name || '',
+  canvas: payload.canvas || null,
+  palette: Array.isArray(payload.palette) ? payload.palette : [],
+  symmetry: payload.symmetry || 'none',
+  note: payload.note || '',
+  baseContentHash: payload.baseContentHash,
+  overlays: (payload.overlays || []).map((overlay) => ({
+    id: String(overlay.id || ''),
+    kind: overlay.kind,
+    role: overlay.role,
+    name: String(overlay.name || ''),
+    sourceLayerId: String(overlay.sourceLayerId || ''),
+    preserveDuringStyle: Boolean(overlay.preserveDuringStyle),
+    opacity: Number(overlay.opacity ?? 1),
+    blendMode: String(overlay.blendMode || 'normal'),
+    semantic: overlay.semantic ?? null,
+    contentHash: overlay.contentHash,
+  })),
+});
+
+const imageData = (value) => 'data:image/png;base64,' + Buffer.from(value).toString('base64');
+const hashDataUri = (uri) => createHash('sha256').update(Buffer.from(uri.split(',', 2)[1], 'base64')).digest('hex');
+const hashManifest = (payload) => createHash('sha256')
+  .update(JSON.stringify(stableValueV2(bridgeV2ManifestFixture(payload))))
+  .digest('hex');
+
+function bridgeV2Fixture() {
+  const base = {
+    protocol: 'parallax-creative-bridge',
+    version: 2,
+    source: 'domistika',
+    target: 'auralith369',
+    createdAt: '2026-09-28T17:40:00-07:00',
+    name: 'Harbor Bridge semantic fixture',
+    image: imageData('base artwork pixels'),
+    canvas: { width: 1400, height: 1000 },
+    palette: ['#112233'],
+    symmetry: 'none',
+    note: 'semantic overlay fixture',
+    overlays: [{
+      id: 'overlay-1',
+      kind: 'raster-overlay',
+      role: 'type',
+      name: 'Title',
+      sourceLayerId: 'layer-title',
+      preserveDuringStyle: true,
+      opacity: 1,
+      blendMode: 'normal',
+      semantic: [{
+        kind: 'text',
+        schema: 'domistika.semantic-text.v1',
+        text: 'Harbor Bridge v3',
+        x: 0.04,
+        y: 0.05,
+        preserveDuringStyle: true,
+      }],
+      image: imageData('transparent title pixels'),
+    }],
+  };
+  base.baseContentHash = 'sha256:' + hashDataUri(base.image);
+  base.overlays[0].contentHash = 'sha256:' + hashDataUri(base.overlays[0].image);
+  base.contentHash = 'sha256:' + hashManifest(base);
+  return base;
+}
+
+test('Creative Bridge v2 verifies base, overlay, and manifest hashes', async () => {
+  const payload = bridgeV2Fixture();
+  assert.equal(await verifyCreativeBridgeV2(payload), true);
+
+  const normalized = normalizeCreativeBridgeV2(payload);
+  assert.equal(normalized.schema, 'parallax.bridge.v2');
+  assert.equal(normalized.version, 2);
+  assert.equal(normalized.contentHash, payload.contentHash);
+  assert.deepEqual(normalized.trustLabels, ['semantic-overlay-bound']);
+  assert.equal(normalized.requiresUserAction, true);
+});
+
+test('Creative Bridge v2 rejects overlay pixel tampering', async () => {
+  const payload = bridgeV2Fixture();
+  payload.overlays[0].image = imageData('tampered title pixels');
+
+  await assert.rejects(
+    verifyCreativeBridgeV2(payload),
+    /overlay contentHash does not match image bytes/,
+  );
+});
+
+test('Creative Bridge v2 rejects semantic metadata tampering', async () => {
+  const payload = bridgeV2Fixture();
+  payload.overlays[0].semantic[0].text = 'Altered title';
+
+  await assert.rejects(
+    verifyCreativeBridgeV2(payload),
+    /manifest contentHash does not match transfer metadata/,
+  );
+});
+
+test('Creative Bridge v2 rejects base artwork tampering', async () => {
+  const payload = bridgeV2Fixture();
+  payload.image = imageData('tampered base artwork');
+
+  await assert.rejects(
+    verifyCreativeBridgeV2(payload),
+    /baseContentHash does not match image bytes/,
   );
 });

@@ -41,17 +41,61 @@ function ArtworkStack({ payload, alt }) {
   );
 }
 
-function downloadArtwork(payload) {
-  const anchor = document.createElement('a');
+function loadBridgeImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function downloadArtwork(payload) {
   const safeName = String(payload.name || 'domistika-artwork')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'domistika-artwork';
-  anchor.href = payload.image;
-  anchor.download = `${safeName}-from-domistika.webp`;
+  const overlays = Array.isArray(payload.overlays) ? payload.overlays.slice(0, 16) : [];
+
+  if (!overlays.length) {
+    const anchor = document.createElement('a');
+    anchor.href = payload.image;
+    anchor.download = `${safeName}-from-domistika.webp`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+  }
+
+  const base = await loadBridgeImage(payload.image);
+  const canvas = document.createElement('canvas');
+  canvas.width = base.width;
+  canvas.height = base.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('AURALITH_BRIDGE_DOWNLOAD_CONTEXT_UNAVAILABLE');
+  ctx.drawImage(base, 0, 0);
+
+  for (const overlay of overlays) {
+    const image = await loadBridgeImage(overlay.image);
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, Number(overlay.opacity ?? 1)));
+    ctx.globalCompositeOperation = String(overlay.blendMode || 'normal');
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((value) => value ? resolve(value) : reject(new Error('AURALITH_BRIDGE_DOWNLOAD_FAILED')), 'image/png');
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${safeName}-from-domistika.png`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 800);
+  return true;
 }
 
 export default function DomistikaBridgeReceiver() {
@@ -144,7 +188,7 @@ export default function DomistikaBridgeReceiver() {
           <ArtworkStack payload={payload} alt={payload.name || 'Artwork transferred from Domistika'} />
           <div className="domistika-bridge-reference-actions">
             <button type="button" onClick={() => setOpen(true)}>Bridge controls</button>
-            <button type="button" onClick={() => downloadArtwork(payload)}>Save image</button>
+            <button type="button" onClick={() => { void downloadArtwork(payload); }}>Save image</button>
           </div>
         </aside>
       )}
@@ -186,7 +230,7 @@ export default function DomistikaBridgeReceiver() {
             <div className="domistika-bridge-actions">
               <button type="button" className="primary" onClick={() => { setReferenceVisible(true); setOpen(false); }}>Use as floating reference</button>
               <button type="button" onClick={() => { setBackdropVisible((value) => !value); setOpen(false); }}>{backdropVisible ? 'Remove workspace backdrop' : 'Use as workspace backdrop'}</button>
-              <button type="button" onClick={() => downloadArtwork(payload)}>Download artwork</button>
+              <button type="button" onClick={() => { void downloadArtwork(payload); }}>Download artwork</button>
               <button type="button" onClick={() => window.open(DOMISTIKA_URL, '_blank', 'noopener,noreferrer')}>Open Domistika</button>
               <button type="button" className="danger" onClick={clearTransfer}>Clear transfer</button>
             </div>

@@ -1,4 +1,4 @@
-export const AURALITH_SITE_TOOLS_VERSION = '0.1.1';
+export const AURALITH_SITE_TOOLS_VERSION = '0.1.2';
 export const AURALITH_SITE_TOOLS_SCHEMA = 'auralith.site-tools.v1';
 
 const MAX_SEARCH_RESULTS = 20;
@@ -99,13 +99,28 @@ function transferSummary(transfer) {
     target: transfer.target || null,
     version: transfer.version || transfer.schemaVersion || null,
     createdAt: transfer.createdAt || transfer.timestamp || null,
-    projectName: transfer.projectName || transfer.project?.name || null,
+    projectName: transfer.projectName || transfer.name || transfer.project?.name || null,
     contentHash: transfer.contentHash || transfer.hash || null,
+    baseContentHash: transfer.baseContentHash || null,
     palette: Array.isArray(transfer.palette) ? transfer.palette.slice(0, 32) : [],
+    overlays: Array.isArray(transfer.overlays)
+      ? transfer.overlays.slice(0, 16).map((overlay) => ({
+        id: overlay.id || null,
+        role: overlay.role || null,
+        name: overlay.name || null,
+        preserveDuringStyle: overlay.preserveDuringStyle !== false,
+        sourceLayerId: overlay.sourceLayerId || null,
+        contentHash: overlay.contentHash || null,
+        semanticKinds: Array.isArray(overlay.semantic)
+          ? [...new Set(overlay.semantic.map((item) => item?.kind).filter(Boolean))].slice(0, 8)
+          : [],
+      }))
+      : [],
+    overlayCount: Array.isArray(transfer.overlays) ? transfer.overlays.length : 0,
     artwork: {
       mimeType: artwork.mimeType || mimeType || null,
-      width: artwork.width || null,
-      height: artwork.height || null,
+      width: artwork.width || transfer.canvas?.width || null,
+      height: artwork.height || transfer.canvas?.height || null,
       estimatedBytes,
       payloadIncluded: Boolean(dataUri),
     },
@@ -326,6 +341,18 @@ function makeTools(api) {
         requireReady(api);
         const transfer = await api.bridge.domistika.receive();
         return ok({ transfer: transferSummary(transfer) });
+      },
+    },
+    {
+      name: 'auralith_import_domistika_transfer',
+      title: 'Import verified Domistika artwork',
+      description: 'Verify and import the current Domistika Creative Bridge transfer into Auralith. Creative Bridge v2 installs protected semantic overlay layers above the base artwork and leaves the base selected for finishing.',
+      inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+      annotations: { readOnlyHint: false, untrustedContentHint: true, consequentialHint: false },
+      execute: async () => {
+        requireReady(api);
+        if (!api.bridge?.domistika?.import) throw new Error('AURALITH_SITE_TOOLS_DOMISTIKA_IMPORT_UNAVAILABLE');
+        return ok({ import: await api.bridge.domistika.import() });
       },
     },
     {

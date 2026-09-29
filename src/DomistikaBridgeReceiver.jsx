@@ -1,33 +1,101 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { verifyCreativeBridgeV1 } from './parallaxBridgeAdapter.js';
+import { verifyCreativeBridge } from './parallaxBridgeAdapter.js';
 import './domistikaBridge.css';
 
-const BRIDGE_KEY = 'parallax-creative-bridge-v1';
+const BRIDGE_KEYS = ['parallax-creative-bridge-v2', 'parallax-creative-bridge-v1'];
 const DOMISTIKA_URL = 'https://michaelwave369.github.io/Domistika/';
 
 function readBridgeCandidate() {
-  try {
-    const payload = JSON.parse(localStorage.getItem(BRIDGE_KEY));
-    if (payload?.protocol !== 'parallax-creative-bridge') return null;
-    if (payload?.source !== 'domistika' || payload?.target !== 'auralith369') return null;
-    if (!String(payload.image || '').startsWith('data:image/')) return null;
-    return payload;
-  } catch {
-    return null;
+  for (const key of BRIDGE_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const payload = JSON.parse(raw);
+      if (payload?.protocol !== 'parallax-creative-bridge') continue;
+      if (payload?.source !== 'domistika' || payload?.target !== 'auralith369') continue;
+      if (![1, 2].includes(payload?.version)) continue;
+      if (!String(payload.image || '').startsWith('data:image/')) continue;
+      return payload;
+    } catch {
+      // Try the next compatible bridge key.
+    }
   }
+  return null;
 }
 
-function downloadArtwork(payload) {
-  const anchor = document.createElement('a');
+function ArtworkStack({ payload, alt }) {
+  const overlays = Array.isArray(payload?.overlays) ? payload.overlays.slice(0, 16) : [];
+  return (
+    <div className="domistika-bridge-art-stack">
+      <img className="domistika-bridge-art-base" src={payload.image} alt={alt} />
+      {overlays.map((overlay, index) => (
+        <img
+          key={overlay.id || `overlay-${index}`}
+          className="domistika-bridge-art-overlay"
+          src={overlay.image}
+          alt=""
+          aria-hidden="true"
+        />
+      ))}
+    </div>
+  );
+}
+
+function loadBridgeImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function downloadArtwork(payload) {
   const safeName = String(payload.name || 'domistika-artwork')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '') || 'domistika-artwork';
-  anchor.href = payload.image;
-  anchor.download = `${safeName}-from-domistika.webp`;
+  const overlays = Array.isArray(payload.overlays) ? payload.overlays.slice(0, 16) : [];
+
+  if (!overlays.length) {
+    const anchor = document.createElement('a');
+    anchor.href = payload.image;
+    anchor.download = `${safeName}-from-domistika.webp`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    return true;
+  }
+
+  const base = await loadBridgeImage(payload.image);
+  const canvas = document.createElement('canvas');
+  canvas.width = base.width;
+  canvas.height = base.height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('AURALITH_BRIDGE_DOWNLOAD_CONTEXT_UNAVAILABLE');
+  ctx.drawImage(base, 0, 0);
+
+  for (const overlay of overlays) {
+    const image = await loadBridgeImage(overlay.image);
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, Math.min(1, Number(overlay.opacity ?? 1)));
+    ctx.globalCompositeOperation = String(overlay.blendMode || 'normal');
+    ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+  }
+
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((value) => value ? resolve(value) : reject(new Error('AURALITH_BRIDGE_DOWNLOAD_FAILED')), 'image/png');
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${safeName}-from-domistika.png`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 800);
+  return true;
 }
 
 export default function DomistikaBridgeReceiver() {
@@ -42,7 +110,7 @@ export default function DomistikaBridgeReceiver() {
       const next = readBridgeCandidate();
       if (!next) return null;
       try {
-        await verifyCreativeBridgeV1(next);
+        await verifyCreativeBridge(next);
         setPayload(next);
         setOpen(true);
         window.dispatchEvent(new CustomEvent('auralith:domistika-bridge', { detail: next }));
@@ -60,14 +128,14 @@ export default function DomistikaBridgeReceiver() {
       }
     };
     if (location.hash === '#domistika-import') void receive();
-    const onStorage = (event) => { if (event.key === BRIDGE_KEY) void receive(); };
+    const onStorage = (event) => { if (BRIDGE_KEYS.includes(event.key)) void receive(); };
     const onHash = () => { if (location.hash === '#domistika-import') void receive(); };
     window.addEventListener('storage', onStorage);
     window.addEventListener('hashchange', onHash);
     window.auralithDomistikaBridge = {
       receive,
       clear: () => {
-        localStorage.removeItem(BRIDGE_KEY);
+        BRIDGE_KEYS.forEach((key) => localStorage.removeItem(key));
         setPayload(null);
         setOpen(false);
         setReferenceVisible(false);
@@ -76,7 +144,7 @@ export default function DomistikaBridgeReceiver() {
       get: async () => {
         const next = readBridgeCandidate();
         if (!next) return null;
-        await verifyCreativeBridgeV1(next);
+        await verifyCreativeBridge(next);
         return next;
       },
     };
@@ -88,7 +156,7 @@ export default function DomistikaBridgeReceiver() {
   }, []);
 
   const clearTransfer = () => {
-    localStorage.removeItem(BRIDGE_KEY);
+    BRIDGE_KEYS.forEach((key) => localStorage.removeItem(key));
     setPayload(null);
     setOpen(false);
     setReferenceVisible(false);
@@ -117,10 +185,10 @@ export default function DomistikaBridgeReceiver() {
             </div>
             <button type="button" onClick={() => setReferenceVisible(false)} aria-label="Close reference">×</button>
           </div>
-          <img src={payload.image} alt={payload.name || 'Artwork transferred from Domistika'} />
+          <ArtworkStack payload={payload} alt={payload.name || 'Artwork transferred from Domistika'} />
           <div className="domistika-bridge-reference-actions">
             <button type="button" onClick={() => setOpen(true)}>Bridge controls</button>
-            <button type="button" onClick={() => downloadArtwork(payload)}>Save image</button>
+            <button type="button" onClick={() => { void downloadArtwork(payload); }}>Save image</button>
           </div>
         </aside>
       )}
@@ -131,7 +199,7 @@ export default function DomistikaBridgeReceiver() {
             <header>
               <div className="domistika-bridge-mark">D◇A</div>
               <div>
-                <span className="domistika-bridge-kicker">Parallax Creative Bridge v1</span>
+                <span className="domistika-bridge-kicker">Parallax Creative Bridge v{payload.version || 1}</span>
                 <h2 id="domistikaBridgeTitle">Domistika artwork received</h2>
                 <p>Move the Carbon spark into Auralith369 as a visual reference or workspace atmosphere.</p>
               </div>
@@ -140,7 +208,7 @@ export default function DomistikaBridgeReceiver() {
 
             <div className="domistika-bridge-body">
               <div className="domistika-bridge-preview">
-                <img src={payload.image} alt={payload.name || 'Artwork transferred from Domistika'} />
+                <ArtworkStack payload={payload} alt={payload.name || 'Artwork transferred from Domistika'} />
               </div>
               <div className="domistika-bridge-info">
                 <dl>
@@ -148,20 +216,21 @@ export default function DomistikaBridgeReceiver() {
                   <div><dt>Canvas</dt><dd>{payload.canvas ? `${payload.canvas.width} × ${payload.canvas.height}` : 'Unknown'}</dd></div>
                   <div><dt>Symmetry</dt><dd>{payload.symmetry || 'none'}</dd></div>
                   <div><dt>Transfer</dt><dd>{payload.createdAt ? new Date(payload.createdAt).toLocaleString() : 'Local bridge'}</dd></div>
+                  <div><dt>Protected overlays</dt><dd>{Array.isArray(payload.overlays) ? payload.overlays.length : 0}</dd></div>
                 </dl>
                 {palette.length > 0 && (
                   <div className="domistika-bridge-palette" aria-label="Domistika favorite color palette">
                     {palette.map((color) => <span key={color} title={color} style={{ backgroundColor: color }} />)}
                   </div>
                 )}
-                <p className="domistika-bridge-note">The image and metadata came through same-origin browser storage and passed a local SHA-256 integrity check. Nothing was uploaded by the bridge.</p>
+                <p className="domistika-bridge-note">The image and metadata came through same-origin browser storage and passed a local SHA-256 integrity check. Creative Bridge v2 also verifies protected overlay bytes and manifest metadata. Nothing was uploaded by the bridge.</p>
               </div>
             </div>
 
             <div className="domistika-bridge-actions">
               <button type="button" className="primary" onClick={() => { setReferenceVisible(true); setOpen(false); }}>Use as floating reference</button>
               <button type="button" onClick={() => { setBackdropVisible((value) => !value); setOpen(false); }}>{backdropVisible ? 'Remove workspace backdrop' : 'Use as workspace backdrop'}</button>
-              <button type="button" onClick={() => downloadArtwork(payload)}>Download artwork</button>
+              <button type="button" onClick={() => { void downloadArtwork(payload); }}>Download artwork</button>
               <button type="button" onClick={() => window.open(DOMISTIKA_URL, '_blank', 'noopener,noreferrer')}>Open Domistika</button>
               <button type="button" className="danger" onClick={clearTransfer}>Clear transfer</button>
             </div>

@@ -1,4 +1,4 @@
-export const AURALITH_SDK_VERSION = '0.1.1';
+export const AURALITH_SDK_VERSION = '0.1.2';
 export const AURALITH_SDK_SCHEMA = 'auralith.sdk.v1';
 
 let runtimeAdapter = null;
@@ -240,6 +240,17 @@ async function bridgeGet() {
   return cloneFrozen(await requireMethod('bridgeGet')());
 }
 
+async function bridgeImport() {
+  const result = await requireMethod('bridgeImport')();
+  emit('sdk-bridge', {
+    action: 'import',
+    available: Boolean(result),
+    version: result?.version || null,
+    overlayCount: result?.overlayCount || 0,
+  });
+  return cloneFrozen(result);
+}
+
 function bridgeClear() {
   const result = requireMethod('bridgeClear')();
   emit('sdk-bridge', { action: 'clear' });
@@ -308,8 +319,15 @@ function baseCommands() {
       id: 'bridge.domistika.receive',
       label: 'Receive Domistika Artwork',
       category: 'Bridge',
-      description: 'Verify and open the current local Domistika creative transfer.',
+      description: 'Verify the current local Domistika creative transfer.',
       keywords: ['domistika', 'bridge', 'transfer', 'reference'],
+    },
+    {
+      id: 'bridge.domistika.import',
+      label: 'Import Domistika Artwork',
+      category: 'Bridge',
+      description: 'Verify and import the Domistika base artwork plus protected semantic overlays.',
+      keywords: ['domistika', 'bridge', 'transfer', 'import', 'type', 'protected overlay'],
     },
     {
       id: 'receipt.export',
@@ -450,6 +468,7 @@ function commandExecute(id, args = {}) {
 
   if (key === 'layer.add') return layersAdd(args?.name || 'Layer');
   if (key === 'bridge.domistika.receive') return bridgeReceive();
+  if (key === 'bridge.domistika.import') return bridgeImport();
   if (key === 'receipt.export') return receiptExport();
   if (key === 'export.png') return exportPng();
   if (key === 'export.capture') return exportCapture(args || {});
@@ -530,6 +549,7 @@ const API = freezeDeep({
     domistika: {
       receive: bridgeReceive,
       get: bridgeGet,
+      import: bridgeImport,
       clear: bridgeClear,
     },
   },

@@ -19,8 +19,8 @@ function fakeApi() {
     ready:()=>true,
     capabilities:()=>({
       schema:'auralith.sdk.v1',
-      sdkVersion:'0.1.1',
-      appVersion:'v0.7.2-alpha',
+      sdkVersion:'0.1.2',
+      appVersion:'v0.7.3-alpha',
       ready:true,
       project:{name:'Night Harbor',width:1200,height:800,activeLayerId:1,layerCount:2},
       image:{loaded:true,width:1200,height:800},
@@ -32,7 +32,7 @@ function fakeApi() {
       actions:{count:1},
       receipts:{available:true,latestReceiptId:'sha256:old'},
       capture:{available:true,schema:'auralith.capture.png.v1',authority:'canvas2d',maxDimension:2048,maxBytes:4194304},
-      bridge:{domistika:{available:true}},
+      bridge:{domistika:{available:true,versions:[1,2],semanticOverlays:true,pendingVersion:2}},
     }),
     project:{info:()=>({name:'Night Harbor',activeLayerId:1,layerCount:2})},
     layers:{
@@ -54,21 +54,29 @@ function fakeApi() {
     bridge:{domistika:{
       get:async()=>({
         protocol:'parallax-creative-bridge',
+        version:2,
         source:'domistika',
         target:'auralith369',
         projectName:'Night Harbor',
         contentHash:'sha256:abc',
         palette:['#112233','#ffcc88'],
+        overlays:[{id:'overlay-1',role:'type',name:'Title',preserveDuringStyle:true,sourceLayerId:'layer-title',contentHash:'sha256:overlay',semantic:[{kind:'text'}],image:'data:image/png;base64,CCCC'}],
         artwork:{mimeType:'image/png',width:1200,height:800,dataUri:'data:image/png;base64,AAAA'},
       }),
       receive:async()=>({
         protocol:'parallax-creative-bridge',
+        version:2,
         source:'domistika',
         target:'auralith369',
         projectName:'Night Harbor',
         contentHash:'sha256:abc',
+        overlays:[{id:'overlay-1',role:'type',name:'Title',preserveDuringStyle:true,sourceLayerId:'layer-title',contentHash:'sha256:overlay',semantic:[{kind:'text'}],image:'data:image/png;base64,DDDD'}],
         artwork:{mimeType:'image/png',width:1200,height:800,dataUri:'data:image/png;base64,BBBB'},
       }),
+      import:async()=>{
+        calls.push(['bridge-import']);
+        return{ok:true,version:2,projectName:'Night Harbor',width:1200,height:800,overlayCount:1,protectedLayerIds:[2],contentHash:'sha256:abc'};
+      },
     }},
     receipts:{export:async()=>({
       receiptId:'sha256:new',
@@ -100,13 +108,13 @@ function fakeApi() {
 }
 
 test('Auralith site tools expose a compact stable finishing vocabulary', async()=>{
-  assert.equal(AURALITH_SITE_TOOLS_VERSION,'0.1.1');
+  assert.equal(AURALITH_SITE_TOOLS_VERSION,'0.1.2');
   assert.equal(AURALITH_SITE_TOOLS_SCHEMA,'auralith.site-tools.v1');
 
   const api=fakeApi();
   const tools=createAuralithSiteTools(api);
   assert.equal(Object.isFrozen(tools),true);
-  assert.equal(tools.length,15);
+  assert.equal(tools.length,16);
   assert.deepEqual(tools.map(t=>t.name),[
     'auralith_get_capabilities',
     'auralith_search_commands',
@@ -120,6 +128,7 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
     'auralith_set_adjustments',
     'auralith_get_domistika_transfer',
     'auralith_receive_domistika_transfer',
+    'auralith_import_domistika_transfer',
     'auralith_capture_png',
     'auralith_export_receipt',
     'auralith_execute_command',
@@ -186,7 +195,14 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
 
   const receiveTool=tools.find(t=>t.name==='auralith_receive_domistika_transfer');
   const receivedRaw=await receiveTool.execute({});
-  assert.doesNotMatch(receivedRaw,/BBBB/);
+  assert.doesNotMatch(receivedRaw,/BBBB|DDDD/);
+
+  const importTool=tools.find(t=>t.name==='auralith_import_domistika_transfer');
+  const imported=JSON.parse(await importTool.execute({}));
+  assert.equal(imported.import.version,2);
+  assert.equal(imported.import.overlayCount,1);
+  assert.deepEqual(imported.import.protectedLayerIds,[2]);
+  assert.deepEqual(api.calls.at(-1),['bridge-import']);
 
   const captureTool=tools.find(t=>t.name==='auralith_capture_png');
   const captureRaw=await captureTool.execute({maxDimension:1024});
@@ -222,8 +238,8 @@ test('Auralith site tools register through modelContext with abort lifecycle', a
   };
   const state=await installAuralithSiteTools({api,modelContext});
   assert.equal(state.available,true);
-  assert.equal(state.registered.length,15);
-  assert.equal(registrations.length,15);
+  assert.equal(state.registered.length,16);
+  assert.equal(registrations.length,16);
   for(const entry of registrations) assert.ok(entry.options.signal);
   assert.equal(state.stop(),true);
 });
@@ -240,6 +256,8 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.match(source,/auralith\.site-tools\.v1/);
   assert.match(source,/payloadIncluded/);
   assert.match(source,/auralith_capture_png/);
+  assert.match(source,/auralith_import_domistika_transfer/);
+  assert.match(source,/overlayCount/);
   assert.match(source,/const \{ dataUrl, \.\.\.portable \} = capture/);
   assert.doesNotMatch(source,/\beval\s*\(/);
   assert.doesNotMatch(source,/new Function\s*\(/);
@@ -248,5 +266,5 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.doesNotMatch(source,/WebGLRenderingContext/);
 
   assert.match(app,/installAuralithSiteToolsGlobal/);
-  assert.match(editor,/APP_VERSION="v0\.7\.2-alpha"/);
+  assert.match(editor,/APP_VERSION="v0\.7\.3-alpha"/);
 });

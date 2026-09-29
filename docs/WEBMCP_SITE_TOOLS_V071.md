@@ -48,6 +48,7 @@ auralith_apply_style
 auralith_apply_gpu_cartridge
 auralith_set_adjustments
 auralith_receive_domistika_transfer
+auralith_import_domistika_transfer
 auralith_export_receipt
 auralith_execute_command
 \`\`\`
@@ -183,6 +184,24 @@ which uses the existing verified bridge path.
 
 WebMCP does not create an integrity bypass.
 
+## Verified semantic Domistika import
+
+The native action:
+
+```text
+auralith_import_domistika_transfer
+```
+
+calls:
+
+```js
+Auralith.bridge.domistika.import()
+```
+
+For Creative Bridge v2, this imports the verified base raster and protected semantic overlays as separate Auralith layers.
+
+The native path does not implement an alternate bridge or bypass integrity verification.
+
 ## Finished-art capture
 
 Starting in v0.7.2-alpha, the read-only site tool:
@@ -278,9 +297,9 @@ COMMAND EXECUTION != ARBITRARY JAVASCRIPT
 ## Contracts
 
 \`\`\`text
-Auralith app:      v0.7.2-alpha
-Stable SDK:        0.1.1
+Auralith app:      v0.7.3-alpha
+Stable SDK:        0.1.2
 Stable SDK schema: auralith.sdk.v1
-Site tools:        0.1.1
+Site tools:        0.1.2
 Site-tool schema:  auralith.site-tools.v1
 \`\`\`

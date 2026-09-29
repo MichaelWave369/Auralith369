@@ -141,6 +141,31 @@
   object-fit: contain;
 }
 
+.domistika-bridge-art-stack {
+  position: relative;
+  width: 100%;
+  line-height: 0;
+}
+
+.domistika-bridge-art-stack > img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.domistika-bridge-art-stack > .domistika-bridge-art-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.domistika-bridge-reference .domistika-bridge-art-stack {
+  background: #02040a;
+}
+
 .domistika-bridge-info {
   display: grid;
   align-content: start;

@@ -1,4 +1,4 @@
-// Auralith369 v0.7.2-alpha — local-first visual alchemy by PHI369 Labs
+// Auralith369 v0.7.3-alpha — local-first visual alchemy by PHI369 Labs
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
@@ -12,7 +12,7 @@ import { GPU_LAB_BUILTIN_PRESETS, createCustomGpuPreset, findGpuPreset, parseGpu
 import { loadCustomGpuPresets, loadGpuFavoriteIds, saveCustomGpuPresets, saveGpuFavoriteIds } from "./gpu/gpuPresetStorage.js";
 import { bindAuralithRuntime, unbindAuralithRuntime } from "./lib/auralithStableSdk.js";
 
-const APP_VERSION="v0.7.2-alpha";
+const APP_VERSION="v0.7.3-alpha";
 const PHI=1.618033988749895,LAM=0.618033988749895;
 const C={bg:"#050910",pn:"#090e1b",pa:"#0b1120",bd:"#121a2f",srf:"#0d142c",sh:"#121b3a",sa:"#172249",ac:"#00d4aa",ad:"#00a88622",ag:"#00d4aa10",gd:"#d4a017",pr:"#8b5cf6",rd:"#ef4444",bl:"#3b82f6",gn:"#10b981",cy:"#06b6d4",pk:"#ec4899",or:"#f97316",tx:"#e2e8f0",td:"#7085a8",tm:"#3a4c66",wh:"#fff",bk:"#000"};
 const FN="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace";
@@ -128,6 +128,7 @@ const Bt=({a,children,onClick,style:s,title:t,sm})=>(<button title={t} onClick={
 export default function Auralith369(){
   const mcR=useRef(null),olR=useRef(null),mnR=useRef(null),fR=useRef(null);
   const gpuPreviewRef=useRef(null),gpuPresetInputRef=useRef(null);
+  const pendingDomistikaTransferRef=useRef(null);
   const[sz,setSz]=useState({w:1024,h:680});const[zm,setZm]=useState(1);const[hasI,setHasI]=useState(0);const[drOv,setDrOv]=useState(0);const[cRot,setCRot]=useState(0);
   const[layers,setLayers]=useState([{id:1,n:"Background",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{shadow:0,shadowBlur:8,shadowX:4,shadowY:4,glow:0,glowSize:6}}]);
   const[aL,setAL]=useState(1);const ld=useRef({}),mks=useRef({}),nid=useRef(2);
@@ -205,10 +206,10 @@ export default function Auralith369(){
   const curvLUT=useMemo(()=>{const lut=new Uint8Array(256),pts=[...curvP].sort((a,b)=>a.x-b.x);for(let i=0;i<256;i++){let lo=pts[0],hi=pts[pts.length-1];for(let j=0;j<pts.length-1;j++)if(pts[j].x<=i&&pts[j+1].x>=i){lo=pts[j];hi=pts[j+1];break;}lut[i]=cl(Math.round(lo.y+(hi.y-lo.y)*(hi.x===lo.x?0:(i-lo.x)/(hi.x-lo.x))),0,255);}return lut;},[curvP]);
 
   // Apply gradient map
-  const applyGradMap=(gm)=>{const lc=ld.current[aL];if(!lc)return;save("GradMap: "+gm.n);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);const stops=gm.stops.map(s=>({p:s[0],c:h2r(s[1])}));for(let i=0;i<id.data.length;i+=4){const lum=(id.data[i]*.299+id.data[i+1]*.587+id.data[i+2]*.114)/255;let lo=stops[0],hi=stops[stops.length-1];for(let j=0;j<stops.length-1;j++)if(stops[j].p<=lum&&stops[j+1].p>=lum){lo=stops[j];hi=stops[j+1];break;}const t=hi.p===lo.p?0:(lum-lo.p)/(hi.p-lo.p);id.data[i]=lo.c.r+(hi.c.r-lo.c.r)*t;id.data[i+1]=lo.c.g+(hi.c.g-lo.c.g)*t;id.data[i+2]=lo.c.b+(hi.c.b-lo.c.b)*t;}ctx.putImageData(id,0,0);comp();};
+  const applyGradMap=(gm)=>{if(guardProtectedStyle())return;const lc=ld.current[aL];if(!lc)return;save("GradMap: "+gm.n);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);const stops=gm.stops.map(s=>({p:s[0],c:h2r(s[1])}));for(let i=0;i<id.data.length;i+=4){const lum=(id.data[i]*.299+id.data[i+1]*.587+id.data[i+2]*.114)/255;let lo=stops[0],hi=stops[stops.length-1];for(let j=0;j<stops.length-1;j++)if(stops[j].p<=lum&&stops[j+1].p>=lum){lo=stops[j];hi=stops[j+1];break;}const t=hi.p===lo.p?0:(lum-lo.p)/(hi.p-lo.p);id.data[i]=lo.c.r+(hi.c.r-lo.c.r)*t;id.data[i+1]=lo.c.g+(hi.c.g-lo.c.g)*t;id.data[i+2]=lo.c.b+(hi.c.b-lo.c.b)*t;}ctx.putImageData(id,0,0);comp();};
 
   // Apply LUT
-  const applyLUT=(lut)=>{const lc=ld.current[aL];if(!lc)return;save("LUT: "+lut.n);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);const result=lut.fn(id.data);ctx.putImageData(new ImageData(result,lc.width,lc.height),0,0);comp();};
+  const applyLUT=(lut)=>{if(guardProtectedStyle())return;const lc=ld.current[aL];if(!lc)return;save("LUT: "+lut.n);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);const result=lut.fn(id.data);ctx.putImageData(new ImageData(result,lc.width,lc.height),0,0);comp();};
 
   // Dominant color extraction
   const extractDominant=()=>{const mc=mcR.current;if(!mc)return;const ctx=mc.getContext("2d");const id=ctx.getImageData(0,0,sz.w,sz.h);const colorMap={};const step=4;for(let i=0;i<id.data.length;i+=4*step){const r=Math.round(id.data[i]/32)*32,g=Math.round(id.data[i+1]/32)*32,b=Math.round(id.data[i+2]/32)*32;const key=`${r},${g},${b}`;colorMap[key]=(colorMap[key]||0)+1;}const sorted=Object.entries(colorMap).sort((a,b)=>b[1]-a[1]).slice(0,8);setDomColors(sorted.map(([k])=>{const[r,g,b]=k.split(",").map(Number);return r2h(r,g,b);}));};
@@ -222,7 +223,7 @@ export default function Auralith369(){
     if(l.biLo>0||l.biHi<255){const id=tc.getImageData(0,0,sz.w,sz.h);for(let i=0;i<id.data.length;i+=4){const lum=id.data[i]*.299+id.data[i+1]*.587+id.data[i+2]*.114;if(lum<l.biLo||lum>l.biHi)id.data[i+3]=0;}tc.putImageData(id,0,0);}
     if(l.mask&&mks.current[l.id]){const id=tc.getImageData(0,0,sz.w,sz.h),mk=mks.current[l.id].getContext("2d").getImageData(0,0,sz.w,sz.h);for(let i=0;i<id.data.length;i+=4)id.data[i+3]=Math.round(id.data[i+3]*(mk.data[i]+mk.data[i+1]+mk.data[i+2])/3/255);tc.putImageData(id,0,0);}
     ctx.save();ctx.globalAlpha=l.op;ctx.globalCompositeOperation=l.bl;if(l.fx?.shadow){ctx.shadowOffsetX=l.fx.shadowX;ctx.shadowOffsetY=l.fx.shadowY;ctx.shadowBlur=l.fx.shadowBlur;ctx.shadowColor="#00000088";}ctx.drawImage(tmp,0,0);ctx.shadowBlur=0;if(l.fx?.glow){ctx.globalCompositeOperation="screen";ctx.filter=`blur(${l.fx.glowSize}px)`;ctx.globalAlpha=l.op*.3;ctx.drawImage(tmp,0,0);ctx.filter="none";}ctx.restore();};
-  const renderCompositeCanvas=useCallback(({checker=0,background=null,split=0}={})=>{const base=document.createElement("canvas");base.width=sz.w;base.height=sz.h;const b=base.getContext("2d");b.clearRect(0,0,sz.w,sz.h);if(background){b.fillStyle=background;b.fillRect(0,0,sz.w,sz.h);}else if(checker)dCk(b,sz.w,sz.h);layers.forEach(l=>{if(!l.vis)return;if(l.kind==="adjustment")applyAdjustmentLayer(base,l);else drawLayerTo(b,l);});const out=document.createElement("canvas");out.width=sz.w;out.height=sz.h;const o=out.getContext("2d");if(background){o.fillStyle=background;o.fillRect(0,0,sz.w,sz.h);}o.filter=adjF;o.drawImage(base,0,0);o.filter="none";if(split&&splitV&&origS.current){const sx=Math.round(sz.w*splitP/100);o.save();o.beginPath();o.rect(0,0,sx,sz.h);o.clip();o.drawImage(origS.current,0,0,sz.w,sz.h);o.restore();o.strokeStyle=C.ac;o.lineWidth=2;o.setLineDash([6,4]);o.beginPath();o.moveTo(sx,0);o.lineTo(sx,sz.h);o.stroke();o.setLineDash([]);o.font="8px "+FN;o.fillStyle=C.ac;o.fillText("BEFORE",sx-42,12);o.fillText("AFTER",sx+4,12);}return out;},[layers,sz,adjF,splitV,splitP]);
+  const renderCompositeCanvas=useCallback(({checker=0,background=null,split=0}={})=>{const base=document.createElement("canvas");base.width=sz.w;base.height=sz.h;const b=base.getContext("2d");b.clearRect(0,0,sz.w,sz.h);if(background){b.fillStyle=background;b.fillRect(0,0,sz.w,sz.h);}else if(checker)dCk(b,sz.w,sz.h);const protectedLayers=[];layers.forEach(l=>{if(!l.vis)return;if(l.styleProtected){protectedLayers.push(l);return;}if(l.kind==="adjustment")applyAdjustmentLayer(base,l);else drawLayerTo(b,l);});const out=document.createElement("canvas");out.width=sz.w;out.height=sz.h;const o=out.getContext("2d");if(background){o.fillStyle=background;o.fillRect(0,0,sz.w,sz.h);}o.filter=adjF;o.drawImage(base,0,0);o.filter="none";protectedLayers.forEach(layer=>drawLayerTo(o,layer));if(split&&splitV&&origS.current){const sx=Math.round(sz.w*splitP/100);o.save();o.beginPath();o.rect(0,0,sx,sz.h);o.clip();o.drawImage(origS.current,0,0,sz.w,sz.h);o.restore();o.strokeStyle=C.ac;o.lineWidth=2;o.setLineDash([6,4]);o.beginPath();o.moveTo(sx,0);o.lineTo(sx,sz.h);o.stroke();o.setLineDash([]);o.font="8px "+FN;o.fillStyle=C.ac;o.fillText("BEFORE",sx-42,12);o.fillText("AFTER",sx+4,12);}return out;},[layers,sz,adjF,splitV,splitP]);
   useEffect(()=>{window.__AURALITH_DIAGNOSTICS__={measureComposite:(iterations=1)=>{const count=cl(Math.round(iterations)||1,1,10),durations=[];for(let i=0;i<count;i++){const started=performance.now(),canvas=renderCompositeCanvas({checker:0});durations.push(performance.now()-started);if(canvas.width!==sz.w||canvas.height!==sz.h)throw new Error("Composite size mismatch");}const total=durations.reduce((sum,value)=>sum+value,0);return{size:{...sz},iterations:count,durations,averageMs:total/count,maxMs:Math.max(...durations)};}};return()=>{delete window.__AURALITH_DIAGNOSTICS__;};},[renderCompositeCanvas,sz]);
   const renderCompositeFrame=useCallback(()=>{renderFrameRef.current=null;const mc=mcR.current;if(!mc)return;const rendered=renderCompositeCanvas({checker:0,split:1});mc.width=sz.w;mc.height=sz.h;const ctx=mc.getContext("2d");mc.style.filter="none";ctx.clearRect(0,0,sz.w,sz.h);dCk(ctx,sz.w,sz.h);ctx.drawImage(rendered,0,0);gpuPreviewRef.current?.render(rendered);const mm=mnR.current;if(mm){mm.width=100;mm.height=Math.round(100*(sz.h/sz.w));mm.getContext("2d").drawImage(mc,0,0,mm.width,mm.height);}if(histogramTimer.current)clearTimeout(histogramTimer.current);histogramTimer.current=setTimeout(()=>{try{const id=ctx.getImageData(0,0,sz.w,sz.h),rH=new Array(256).fill(0),gH=new Array(256).fill(0),bH=new Array(256).fill(0),sampleStep=Math.max(1,Math.ceil((sz.w*sz.h)/262144));for(let i=0;i<id.data.length;i+=4*sampleStep){rH[id.data[i]]++;gH[id.data[i+1]]++;bH[id.data[i+2]]++;}sHistD({r:rH,g:gH,b:bH});}catch(error){console.warn("[Auralith369] Histogram update failed",error);}},180);},[renderCompositeCanvas,sz]);
   const comp=useCallback(()=>{if(renderFrameRef.current!==null)return;renderFrameRef.current=requestAnimationFrame(renderCompositeFrame);},[renderCompositeFrame]);
@@ -262,9 +263,12 @@ export default function Auralith369(){
   const commitShp=(s)=>{if(!s)return;const lc=eLC(aL);const ctx=lc.getContext("2d");const{x1,y1,x2,y2}=s,rx=Math.min(x1,x2),ry=Math.min(y1,y2),rw=Math.abs(x2-x1),rh=Math.abs(y2-y1);ctx.save();ctx.strokeStyle=fg;ctx.fillStyle=fg;ctx.lineWidth=shpW;ctx.globalAlpha=bOp;ctx.setLineDash([]);if(shp==="rect"){shpF?ctx.fillRect(rx,ry,rw,rh):ctx.strokeRect(rx,ry,rw,rh);}else if(shp==="circle"){ctx.beginPath();ctx.ellipse(rx+rw/2,ry+rh/2,rw/2,rh/2,0,0,Math.PI*2);shpF?ctx.fill():ctx.stroke();}else if(shp==="line"){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}else if(shp==="triangle"){ctx.beginPath();ctx.moveTo(rx+rw/2,ry);ctx.lineTo(rx+rw,ry+rh);ctx.lineTo(rx,ry+rh);ctx.closePath();shpF?ctx.fill():ctx.stroke();}else if(shp==="star"){const cx=rx+rw/2,cy=ry+rh/2,or=Math.max(rw,rh)/2,ir=or*LAM;ctx.beginPath();for(let i=0;i<10;i++){const r=i%2===0?or:ir;ctx.lineTo(cx+Math.cos(Math.PI/2*3+i*Math.PI/5)*r,cy+Math.sin(Math.PI/2*3+i*Math.PI/5)*r);}ctx.closePath();shpF?ctx.fill():ctx.stroke();}else if(shp==="hex"){const cx=rx+rw/2,cy=ry+rh/2,r=Math.max(rw,rh)/2;ctx.beginPath();for(let i=0;i<6;i++)ctx.lineTo(cx+Math.cos(Math.PI/3*i-Math.PI/6)*r,cy+Math.sin(Math.PI/3*i-Math.PI/6)*r);ctx.closePath();shpF?ctx.fill():ctx.stroke();}ctx.restore();};
   const commitGrad=(g)=>{if(!g)return;const lc=eLC(aL);const ctx=lc.getContext("2d");let gr;if(gT==="linear")gr=ctx.createLinearGradient(g.x1,g.y1,g.x2,g.y2);else if(gT==="radial"){const r=Math.hypot(g.x2-g.x1,g.y2-g.y1);gr=ctx.createRadialGradient(g.x1,g.y1,0,g.x1,g.y1,r);}else gr=ctx.createConicGradient(0,g.x1,g.y1);gr.addColorStop(0,fg);gr.addColorStop(1,bg_);ctx.save();ctx.globalAlpha=bOp;if(sel){ctx.beginPath();ctx.rect(sel.x,sel.y,sel.w,sel.h);ctx.clip();}ctx.fillStyle=gr;ctx.fillRect(0,0,sz.w,sz.h);ctx.restore();};
 
-  const apPxF=(k)=>{const f=PF[k];if(!f)return;const lc=ld.current[aL];if(!lc)return;save(f.n);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);ctx.putImageData(new ImageData(f.fn(id.data,lc.width,lc.height),lc.width,lc.height),0,0);comp();};
-  const applyPlugin=(pl)=>{const lc=ld.current[aL];if(!lc)return;save(pl.name);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);ctx.putImageData(new ImageData(pl.fn(id.data,lc.width,lc.height),lc.width,lc.height),0,0);comp();};
-  const applyCurv=()=>{const lc=ld.current[aL];if(!lc)return;save("Curves");const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);for(let i=0;i<id.data.length;i+=4){id.data[i]=curvLUT[id.data[i]];id.data[i+1]=curvLUT[id.data[i+1]];id.data[i+2]=curvLUT[id.data[i+2]];}ctx.putImageData(id,0,0);comp();};
+  const styleProtectedActive=()=>Boolean(layers.find(layer=>layer.id===aL)?.styleProtected);
+  const guardProtectedStyle=()=>{if(!styleProtectedActive())return false;flash("Protected semantic overlay — finishing effect skipped");return true;};
+
+  const apPxF=(k)=>{const f=PF[k];if(!f||guardProtectedStyle())return;const lc=ld.current[aL];if(!lc)return;save(f.n);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);ctx.putImageData(new ImageData(f.fn(id.data,lc.width,lc.height),lc.width,lc.height),0,0);comp();};
+  const applyPlugin=(pl)=>{if(guardProtectedStyle())return;const lc=ld.current[aL];if(!lc)return;save(pl.name);const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);ctx.putImageData(new ImageData(pl.fn(id.data,lc.width,lc.height),lc.width,lc.height),0,0);comp();};
+  const applyCurv=()=>{if(guardProtectedStyle())return;const lc=ld.current[aL];if(!lc)return;save("Curves");const ctx=lc.getContext("2d"),id=ctx.getImageData(0,0,lc.width,lc.height);for(let i=0;i<id.data.length;i+=4){id.data[i]=curvLUT[id.data[i]];id.data[i+1]=curvLUT[id.data[i+1]];id.data[i+2]=curvLUT[id.data[i+2]];}ctx.putImageData(id,0,0);comp();};
   const doCAFill=()=>{if(!sel){flash("Select area first");return;}const lc=ld.current[aL];if(!lc)return;save("CA Fill");caFill(lc.getContext("2d"),sel,sz.w,sz.h);comp();};
 
   // Pointer
@@ -351,7 +355,7 @@ export default function Auralith369(){
   const applyStyleCard=card=>{setProjectName(p=>p||card.id);if(card.fg)setFg(card.fg);if(card.bg)setBgC(card.bg);if(card.adj)sAdj(card.adj);if(card.ovl)sOvl(card.ovl);if(card.oOp)sOOp(card.oOp);const lut=LUTS.find(l=>l.n===card.lut),gm=GRAD_MAPS.find(g=>g.n===card.grad),pl=PLUGINS.find(p=>p.name===card.plugin);setTimeout(()=>{if(lut)applyLUT(lut);if(gm)applyGradMap(gm);if(pl)applyPlugin(pl);comp();},20);flash("Style: "+card.n);};
   const forgePoster=pr=>{const old=renderCompositeCanvas({checker:0,background:bg_});save("Poster Forge");const c=document.createElement("canvas");c.width=pr.w;c.height=pr.h;const x=c.getContext("2d");const grd=x.createLinearGradient(0,0,pr.w,pr.h);grd.addColorStop(0,bg_);grd.addColorStop(.62,"#090e1b");grd.addColorStop(1,"#0d142c");x.fillStyle=grd;x.fillRect(0,0,pr.w,pr.h);const margin=Math.round(Math.min(pr.w,pr.h)*.08),capH=Math.round(pr.h*.72),sc=Math.min((pr.w-margin*2)/old.width,capH/old.height),dw=old.width*sc,dh=old.height*sc,dx=(pr.w-dw)/2,dy=Math.round(pr.h*LAM*.42-dh/2);x.shadowColor="#00000088";x.shadowBlur=24;x.drawImage(old,dx,Math.max(margin*1.3,dy),dw,dh);x.shadowBlur=0;x.strokeStyle=fg;x.globalAlpha=.45;x.lineWidth=2;x.strokeRect(margin,margin,pr.w-margin*2,pr.h-margin*2);x.globalAlpha=.18;[LAM*LAM,LAM,1-LAM*LAM].forEach(f=>{x.beginPath();x.moveTo(pr.w*f,margin);x.lineTo(pr.w*f,pr.h-margin);x.stroke();});x.globalAlpha=1;x.fillStyle=fg;x.font=`700 ${Math.round(pr.w*.055)}px ${FN}`;x.fillText(posterTitle||"PHI369",margin,pr.h-margin*1.55);x.fillStyle=C.tx;x.font=`${Math.round(pr.w*.022)}px ${FN}`;x.fillText(posterSub||"Sovereign image alchemy",margin,pr.h-margin*.9);x.fillStyle=C.tm;x.font=`${Math.round(pr.w*.015)}px ${FN}`;x.textAlign="right";x.fillText(`Φ=${PHI.toFixed(3)} · 369 · ${APP_VERSION}`,pr.w-margin,pr.h-margin*.9);ld.current={1:c};mks.current={};origS.current=null;setSz({w:pr.w,h:pr.h});setLayers([{id:1,n:`Poster Forge · ${pr.n}`,vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setGuides([{type:"h",pos:Math.round(pr.h*LAM)},{type:"v",pos:Math.round(pr.w*LAM)}]);sOvl("phi");sOOp(.35);setTimeout(comp,60);flash(`Poster: ${pr.n}`);};
   const hashText=async s=>{const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");};
-  const exportReceipt=async()=>{try{const image=renderCompositeCanvas({checker:0,background:eF==="JPEG"?"#fff":null}).toDataURL("image/png"),imageHash=await hashText(image),payload={kind:"auralith.receipt",version:APP_VERSION,createdAt:new Date().toISOString(),projectName,size:sz,constants:{PHI,LAM,Cstar:.809017,OmegaC:.376},imageHash,layers:layers.map(l=>({id:l.id,name:l.n,visible:!!l.vis,opacity:l.op,blend:l.bl,mask:!!l.mask,blendIf:[l.biLo,l.biHi],fx:l.fx})),adjustments:adj,overlay:{id:ovl,opacity:oOp},gpuLab:{enabled:!!gpuEnabled,bypassed:!!gpuBypass,activePresetId:activeGpuPresetId,activePresetName:gpuPresetName,presetDirty:!!gpuPresetDirty,settings:normalizeGpuLabSettings(gpuSettings)},history:hNm.slice(-36),export:{format:eF,quality:eQ}};payload.receiptId=await hashText(JSON.stringify(payload));setLastReceipt(payload);downloadBlob(`${projectName||"auralith369"}.auralith-receipt.json`,"application/json",JSON.stringify(payload,null,2));flash("Receipt exported");return payload;}catch(e){console.error(e);flash("Receipt failed");return null;}};
+  const exportReceipt=async()=>{try{const image=renderCompositeCanvas({checker:0,background:eF==="JPEG"?"#fff":null}).toDataURL("image/png"),imageHash=await hashText(image),payload={kind:"auralith.receipt",version:APP_VERSION,createdAt:new Date().toISOString(),projectName,size:sz,constants:{PHI,LAM,Cstar:.809017,OmegaC:.376},imageHash,layers:layers.map(l=>({id:l.id,name:l.n,visible:!!l.vis,opacity:l.op,blend:l.bl,mask:!!l.mask,blendIf:[l.biLo,l.biHi],fx:l.fx,semanticRole:l.semanticRole||null,styleProtected:!!l.styleProtected,bridgeOverlay:!!l.bridgeOverlay,sourceLayerId:l.sourceLayerId||null,sourceContentHash:l.sourceContentHash||null})),adjustments:adj,overlay:{id:ovl,opacity:oOp},gpuLab:{enabled:!!gpuEnabled,bypassed:!!gpuBypass,activePresetId:activeGpuPresetId,activePresetName:gpuPresetName,presetDirty:!!gpuPresetDirty,settings:normalizeGpuLabSettings(gpuSettings)},history:hNm.slice(-36),export:{format:eF,quality:eQ}};payload.receiptId=await hashText(JSON.stringify(payload));setLastReceipt(payload);downloadBlob(`${projectName||"auralith369"}.auralith-receipt.json`,"application/json",JSON.stringify(payload,null,2));flash("Receipt exported");return payload;}catch(e){console.error(e);flash("Receipt failed");return null;}};
   const captureVersion=()=>{const img=renderCompositeCanvas({checker:0}).toDataURL("image/png");setVersions(p=>[{name:`Version ${p.length+1}`,at:new Date().toISOString(),size:{...sz},img},...p].slice(0,9));flash("Version captured");};
   const restoreVersion=async(v)=>{try{save("Restore Version");const c=await canvasFromURL(v.img);ld.current={1:c};mks.current={};origS.current=null;setSz(v.size||{w:c.width,h:c.height});setLayers([{id:1,n:v.name||"Restored Version",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setTimeout(comp,60);flash("Version restored");}catch(e){console.error(e);flash("Restore failed");}};
 
@@ -404,6 +408,10 @@ export default function Auralith369(){
         glow:!!layer.fx?.glow,
         glowSize:Number(layer.fx?.glowSize??0),
       },
+      semanticRole:layer.semanticRole?String(layer.semanticRole):null,
+      styleProtected:!!layer.styleProtected,
+      bridgeOverlay:!!layer.bridgeOverlay,
+      sourceLayerId:layer.sourceLayerId?String(layer.sourceLayerId):null,
     }:null;
 
     const imageFileFromInput=(input,options={})=>{
@@ -504,6 +512,62 @@ export default function Auralith369(){
       };
     };
 
+    const importDomistikaOverlays=async transfer=>{
+      if(!transfer||transfer.version!==2||!Array.isArray(transfer.overlays)){
+        return {version:Number(transfer?.version||1),overlayCount:0,protectedLayerIds:[]};
+      }
+      const base=ld.current[1];
+      if(!base)throw new Error("AURALITH_SDK_DOMISTIKA_BASE_MISSING");
+      const imported=[];
+      for(const overlay of transfer.overlays.slice(0,16)){
+        if(!overlay?.image||!["type","motion-ignore"].includes(overlay.role))continue;
+        let canvas=await canvasFromURL(overlay.image);
+        if(canvas.width!==base.width||canvas.height!==base.height){
+          const scaled=document.createElement("canvas");
+          scaled.width=base.width;scaled.height=base.height;
+          scaled.getContext("2d").drawImage(canvas,0,0,base.width,base.height);
+          canvas=scaled;
+        }
+        const id=nid.current++;
+        ld.current[id]=canvas;
+        imported.push({
+          id,
+          n:String(overlay.name||"Protected Domistika overlay").slice(0,120),
+          vis:1,
+          op:cl(Number(overlay.opacity??1),0,1),
+          bl:BLN.includes(String(overlay.blendMode||"normal"))?String(overlay.blendMode||"normal"):"normal",
+          mask:0,biLo:0,biHi:255,fx:{...dfx},
+          semanticRole:String(overlay.role),
+          styleProtected:overlay.preserveDuringStyle!==false,
+          bridgeOverlay:true,
+          bridgeVersion:2,
+          sourceLayerId:String(overlay.sourceLayerId||""),
+          sourceOverlayId:String(overlay.id||""),
+          sourceContentHash:String(overlay.contentHash||""),
+          semantic:Array.isArray(overlay.semantic)?overlay.semantic.slice(0,16):[],
+        });
+      }
+      const oldBridgeIds=new Set(layers.filter(layer=>layer.bridgeOverlay).map(layer=>layer.id));
+      oldBridgeIds.forEach(id=>{delete ld.current[id];delete mks.current[id];});
+      setLayers(current=>{
+        const baseLayers=current.filter(layer=>!layer.bridgeOverlay).map(layer=>layer.id===1?{
+          ...layer,
+          bridgeBase:true,
+          bridgeVersion:2,
+          sourceContentHash:String(transfer.baseContentHash||""),
+        }:layer);
+        return [...baseLayers,...imported];
+      });
+      setAL(1);
+      setTimeout(()=>{comp();save("Domistika semantic overlays");},30);
+      return {
+        version:2,
+        overlayCount:imported.length,
+        protectedLayerIds:imported.map(layer=>layer.id),
+        contentHash:String(transfer.contentHash||""),
+      };
+    };
+
     const resolveFx=id=>{
       const key=String(id||"").trim().toLowerCase();
       const found=Object.entries(PF).find(([fxId,fx])=>fxId.toLowerCase()===key||sdkSlug(fx.n)===key||String(fx.n).toLowerCase()===key);
@@ -526,7 +590,12 @@ export default function Auralith369(){
     const adapter={
       capabilities:()=>({
         appVersion:APP_VERSION,
-        bridge:{domistika:{available:Boolean(window.auralithDomistikaBridge?.receive)}},
+        bridge:{domistika:{
+          available:Boolean(window.auralithDomistikaBridge?.receive),
+          versions:[1,2],
+          semanticOverlays:true,
+          pendingVersion:Number(pendingDomistikaTransferRef.current?.version||0)||null,
+        }},
       }),
       projectInfo:()=>({
         name:projectName,
@@ -539,7 +608,15 @@ export default function Auralith369(){
       projectSerialize:()=>buildProjectPayload(),
       projectOpen:async input=>({ok:Boolean(await loadProject(projectFileFromInput(input)))}),
 
-      imageOpen:async(input,options={})=>loadImg(imageFileFromInput(input,options)),
+      imageOpen:async(input,options={})=>{
+        const result=await loadImg(imageFileFromInput(input,options));
+        const transfer=pendingDomistikaTransferRef.current;
+        if(transfer?.version===2&&typeof input==="string"&&input===transfer.image){
+          const bridge=await importDomistikaOverlays(transfer);
+          return {...result,bridge};
+        }
+        return result;
+      },
       imageCurrent:()=>({
         loaded:!!hasI,
         width:sz.w,
@@ -648,15 +725,38 @@ export default function Auralith369(){
 
       bridgeReceive:async()=>{
         if(!window.auralithDomistikaBridge?.receive)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
-        return window.auralithDomistikaBridge.receive();
+        const transfer=await window.auralithDomistikaBridge.receive();
+        pendingDomistikaTransferRef.current=transfer;
+        return transfer;
       },
       bridgeGet:async()=>{
         if(!window.auralithDomistikaBridge?.get)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
-        return window.auralithDomistikaBridge.get();
+        const transfer=await window.auralithDomistikaBridge.get();
+        if(transfer)pendingDomistikaTransferRef.current=transfer;
+        return transfer;
+      },
+      bridgeImport:async()=>{
+        if(!window.auralithDomistikaBridge?.receive)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
+        const transfer=await window.auralithDomistikaBridge.receive();
+        if(!transfer)throw new Error("AURALITH_SDK_DOMISTIKA_TRANSFER_MISSING");
+        pendingDomistikaTransferRef.current=transfer;
+        const opened=await loadImg(imageFileFromInput(transfer.image,{name:String(transfer.name||"Domistika artwork")+".webp"}));
+        const bridge=await importDomistikaOverlays(transfer);
+        return {
+          ok:true,
+          version:Number(transfer.version||1),
+          projectName:String(transfer.name||opened.name||"Domistika artwork"),
+          width:opened.width,
+          height:opened.height,
+          overlayCount:bridge.overlayCount,
+          protectedLayerIds:bridge.protectedLayerIds,
+          contentHash:String(transfer.contentHash||""),
+        };
       },
       bridgeClear:()=>{
         if(!window.auralithDomistikaBridge?.clear)throw new Error("AURALITH_SDK_DOMISTIKA_BRIDGE_UNAVAILABLE");
         window.auralithDomistikaBridge.clear();
+        pendingDomistikaTransferRef.current=null;
         return true;
       },
 

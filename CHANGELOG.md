@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.7.3-alpha
+- Added Creative Bridge v2 with v1 fallback.
+- Added SHA-256 verification for base artwork, each protected overlay, and canonical bridge manifest metadata.
+- Imported Domistika `type` and `motion-ignore` content as separate protected Auralith layers.
+- Preserved existing `receive() → image.open(payload.image)` agent workflow with automatic semantic-overlay installation.
+- Added `Auralith.bridge.domistika.import()` one-call verified import.
+- Added native `auralith_import_domistika_transfer` WebMCP action.
+- Added style protection for destructive LUT / FX / plugin / gradient-map / Curves operations.
+- Composited protected semantic overlays after global finishing adjustments.
+- Added semantic bridge provenance to creative receipts.
+- Added layered v2 bridge previews and adversarial tamper tests.
+
+
 ## 0.7.2-alpha
 - Added `Auralith.export.capture()` structured PNG readback for agents.
 - Added bounded capture limits: 2048 px maximum dimension and 4 MiB PNG payload.

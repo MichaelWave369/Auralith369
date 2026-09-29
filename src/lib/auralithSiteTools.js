@@ -99,8 +99,9 @@ function transferSummary(transfer) {
     target: transfer.target || null,
     version: transfer.version || transfer.schemaVersion || null,
     createdAt: transfer.createdAt || transfer.timestamp || null,
-    projectName: transfer.projectName || transfer.project?.name || null,
+    projectName: transfer.projectName || transfer.name || transfer.project?.name || null,
     contentHash: transfer.contentHash || transfer.hash || null,
+    baseContentHash: transfer.baseContentHash || null,
     palette: Array.isArray(transfer.palette) ? transfer.palette.slice(0, 32) : [],
     overlays: Array.isArray(transfer.overlays)
       ? transfer.overlays.slice(0, 16).map((overlay) => ({
@@ -118,8 +119,8 @@ function transferSummary(transfer) {
     overlayCount: Array.isArray(transfer.overlays) ? transfer.overlays.length : 0,
     artwork: {
       mimeType: artwork.mimeType || mimeType || null,
-      width: artwork.width || null,
-      height: artwork.height || null,
+      width: artwork.width || transfer.canvas?.width || null,
+      height: artwork.height || transfer.canvas?.height || null,
       estimatedBytes,
       payloadIncluded: Boolean(dataUri),
     },

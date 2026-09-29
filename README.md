@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.7.3-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.7.4-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -41,6 +41,24 @@ Auralith CI recomputes the profile hash independently.
 The optional CineSwarm release-reference extension remains unratified on the receiver side.
 
 See [Parallax Creative Interop v2](docs/PARALLAX_CREATIVE_INTEROP_V2.md).
+
+## v0.7.4-alpha — Observation Receipts + Style Intent
+
+Acceptance 003 now leaves automatic evidence after verified import and finished capture.
+
+```text
+bridge import
+→ auralith.observation-receipt.v1
+
+capture
+→ auralith.capture.png.v1
+→ observation receipt
+→ same-origin parallax creative evidence
+```
+
+Style Cards also expose machine-readable intent so agents can distinguish grades from strong surface transforms before applying them.
+
+See [Observation Receipts + Style Intent](docs/OBSERVATION_RECEIPTS_V074.md).
 
 ## v0.7.3-alpha — Creative Bridge v2
 

@@ -1,4 +1,4 @@
-// Auralith369 v0.7.3-alpha — local-first visual alchemy by PHI369 Labs
+// Auralith369 v0.7.4-alpha — local-first visual alchemy by PHI369 Labs
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   validateAuralithProject,
@@ -12,7 +12,7 @@ import { GPU_LAB_BUILTIN_PRESETS, createCustomGpuPreset, findGpuPreset, parseGpu
 import { loadCustomGpuPresets, loadGpuFavoriteIds, saveCustomGpuPresets, saveGpuFavoriteIds } from "./gpu/gpuPresetStorage.js";
 import { bindAuralithRuntime, unbindAuralithRuntime } from "./lib/auralithStableSdk.js";
 
-const APP_VERSION="v0.7.3-alpha";
+const APP_VERSION="v0.7.4-alpha";
 const PHI=1.618033988749895,LAM=0.618033988749895;
 const C={bg:"#050910",pn:"#090e1b",pa:"#0b1120",bd:"#121a2f",srf:"#0d142c",sh:"#121b3a",sa:"#172249",ac:"#00d4aa",ad:"#00a88622",ag:"#00d4aa10",gd:"#d4a017",pr:"#8b5cf6",rd:"#ef4444",bl:"#3b82f6",gn:"#10b981",cy:"#06b6d4",pk:"#ec4899",or:"#f97316",tx:"#e2e8f0",td:"#7085a8",tm:"#3a4c66",wh:"#fff",bk:"#000"};
 const FN="ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,'Liberation Mono','Courier New',monospace";
@@ -76,11 +76,11 @@ const PLUGINS=[
 
 // ─── Auralith369 v0.1.0-alpha creator system presets ───
 const STYLE_CARDS=[
-  {id:"phi_forge",n:"Φ Forge",desc:"Clean teal/gold mythic grade",fg:"#00d4aa",bg:"#0a0e1a",adj:{br:108,ct:118,st:116,hu:0,bl:0,temp:8},ovl:"phi",oOp:.42,lut:"Golden Hour",grad:"Φ Aura"},
-  {id:"cinema_369",n:"369 Cinema",desc:"High-contrast sacred grid finish",fg:"#8b5cf6",bg:"#050910",adj:{br:96,ct:132,st:124,hu:0,bl:0,temp:-6},ovl:"369",oOp:.36,lut:"Blade Runner",plugin:"Glitch"},
-  {id:"analog_oracle",n:"Analog Oracle",desc:"Soft vintage ritual film",fg:"#d4a017",bg:"#1a1a2e",adj:{br:105,ct:106,st:92,hu:0,bl:.4,temp:16},ovl:"spiral",oOp:.3,lut:"Vintage Film",plugin:"Halftone"},
-  {id:"noir_signal",n:"Noir Signal",desc:"Cool moonlit transmission",fg:"#06b6d4",bg:"#050910",adj:{br:86,ct:145,st:78,hu:0,bl:0,temp:-18},ovl:"thirds",oOp:.25,lut:"Moonlight",grad:"B&W"},
-  {id:"mythic_poster",n:"Mythic Poster",desc:"Punchy poster-ready alchemy",fg:"#f97316",bg:"#090e1b",adj:{br:112,ct:128,st:140,hu:0,bl:0,temp:12},ovl:"phi",oOp:.5,lut:"Teal & Orange",grad:"Teal→Gold"}
+  {id:"phi_forge",n:"Φ Forge",desc:"Clean teal/gold mythic grade",intent:{class:"stylized-grade",destructiveAppearance:true,preservesPhotometricStructure:true,recommendedFor:["poster","illustration","stylized-still"]},fg:"#00d4aa",bg:"#0a0e1a",adj:{br:108,ct:118,st:116,hu:0,bl:0,temp:8},ovl:"phi",oOp:.42,lut:"Golden Hour",grad:"Φ Aura"},
+  {id:"cinema_369",n:"369 Cinema",desc:"High-contrast sacred grid finish",intent:{class:"surface-transform",destructiveAppearance:true,preservesPhotometricStructure:false,recommendedFor:["poster","graphic","experimental"]},fg:"#8b5cf6",bg:"#050910",adj:{br:96,ct:132,st:124,hu:0,bl:0,temp:-6},ovl:"369",oOp:.36,lut:"Blade Runner",plugin:"Glitch"},
+  {id:"analog_oracle",n:"Analog Oracle",desc:"Soft vintage ritual film",intent:{class:"surface-transform",destructiveAppearance:true,preservesPhotometricStructure:false,recommendedFor:["print-effect","graphic","experimental"]},fg:"#d4a017",bg:"#1a1a2e",adj:{br:105,ct:106,st:92,hu:0,bl:.4,temp:16},ovl:"spiral",oOp:.3,lut:"Vintage Film",plugin:"Halftone"},
+  {id:"noir_signal",n:"Noir Signal",desc:"Cool moonlit transmission",intent:{class:"stylized-grade",destructiveAppearance:true,preservesPhotometricStructure:false,recommendedFor:["graphic","night-scene","experimental"]},fg:"#06b6d4",bg:"#050910",adj:{br:86,ct:145,st:78,hu:0,bl:0,temp:-18},ovl:"thirds",oOp:.25,lut:"Moonlight",grad:"B&W"},
+  {id:"mythic_poster",n:"Mythic Poster",desc:"Punchy poster-ready alchemy",intent:{class:"surface-transform",destructiveAppearance:true,preservesPhotometricStructure:false,recommendedFor:["poster","cover","graphic"]},fg:"#f97316",bg:"#090e1b",adj:{br:112,ct:128,st:140,hu:0,bl:0,temp:12},ovl:"phi",oOp:.5,lut:"Teal & Orange",grad:"Teal→Gold"}
 ];
 const POSTER_PRESETS=[
   {id:"square",n:"Square",w:1080,h:1080,desc:"1:1 social post"},
@@ -129,6 +129,7 @@ export default function Auralith369(){
   const mcR=useRef(null),olR=useRef(null),mnR=useRef(null),fR=useRef(null);
   const gpuPreviewRef=useRef(null),gpuPresetInputRef=useRef(null);
   const pendingDomistikaTransferRef=useRef(null);
+  const lastStyleRef=useRef(null);
   const[sz,setSz]=useState({w:1024,h:680});const[zm,setZm]=useState(1);const[hasI,setHasI]=useState(0);const[drOv,setDrOv]=useState(0);const[cRot,setCRot]=useState(0);
   const[layers,setLayers]=useState([{id:1,n:"Background",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{shadow:0,shadowBlur:8,shadowX:4,shadowY:4,glow:0,glowSize:6}}]);
   const[aL,setAL]=useState(1);const ld=useRef({}),mks=useRef({}),nid=useRef(2);
@@ -352,9 +353,66 @@ export default function Auralith369(){
   const restoreRecovery=async()=>{if(!recoveryCandidate)return;const file=new File([JSON.stringify(recoveryCandidate.project)],"Recovered Session.auralith",{type:"application/json"});setRecoveryCandidate(null);await loadProject(file);flash("Session recovered");};
   const discardRecovery=async()=>{await clearRecoverySnapshot().catch(error=>console.warn("[Auralith369] Recovery discard failed",error));setRecoveryCandidate(null);setRecoverySavedAt("");flash("Recovery discarded");};
   const openAsset=file=>{if(!file)return;if(/\.auralith$/i.test(file.name)||file.type==="application/json")loadProject(file);else loadImg(file);};
-  const applyStyleCard=card=>{setProjectName(p=>p||card.id);if(card.fg)setFg(card.fg);if(card.bg)setBgC(card.bg);if(card.adj)sAdj(card.adj);if(card.ovl)sOvl(card.ovl);if(card.oOp)sOOp(card.oOp);const lut=LUTS.find(l=>l.n===card.lut),gm=GRAD_MAPS.find(g=>g.n===card.grad),pl=PLUGINS.find(p=>p.name===card.plugin);setTimeout(()=>{if(lut)applyLUT(lut);if(gm)applyGradMap(gm);if(pl)applyPlugin(pl);comp();},20);flash("Style: "+card.n);};
+  const applyStyleCard=card=>{lastStyleRef.current={id:card.id,name:card.n,intent:card.intent||null};setProjectName(p=>p||card.id);if(card.fg)setFg(card.fg);if(card.bg)setBgC(card.bg);if(card.adj)sAdj(card.adj);if(card.ovl)sOvl(card.ovl);if(card.oOp)sOOp(card.oOp);const lut=LUTS.find(l=>l.n===card.lut),gm=GRAD_MAPS.find(g=>g.n===card.grad),pl=PLUGINS.find(p=>p.name===card.plugin);setTimeout(()=>{if(lut)applyLUT(lut);if(gm)applyGradMap(gm);if(pl)applyPlugin(pl);comp();},20);flash("Style: "+card.n);};
   const forgePoster=pr=>{const old=renderCompositeCanvas({checker:0,background:bg_});save("Poster Forge");const c=document.createElement("canvas");c.width=pr.w;c.height=pr.h;const x=c.getContext("2d");const grd=x.createLinearGradient(0,0,pr.w,pr.h);grd.addColorStop(0,bg_);grd.addColorStop(.62,"#090e1b");grd.addColorStop(1,"#0d142c");x.fillStyle=grd;x.fillRect(0,0,pr.w,pr.h);const margin=Math.round(Math.min(pr.w,pr.h)*.08),capH=Math.round(pr.h*.72),sc=Math.min((pr.w-margin*2)/old.width,capH/old.height),dw=old.width*sc,dh=old.height*sc,dx=(pr.w-dw)/2,dy=Math.round(pr.h*LAM*.42-dh/2);x.shadowColor="#00000088";x.shadowBlur=24;x.drawImage(old,dx,Math.max(margin*1.3,dy),dw,dh);x.shadowBlur=0;x.strokeStyle=fg;x.globalAlpha=.45;x.lineWidth=2;x.strokeRect(margin,margin,pr.w-margin*2,pr.h-margin*2);x.globalAlpha=.18;[LAM*LAM,LAM,1-LAM*LAM].forEach(f=>{x.beginPath();x.moveTo(pr.w*f,margin);x.lineTo(pr.w*f,pr.h-margin);x.stroke();});x.globalAlpha=1;x.fillStyle=fg;x.font=`700 ${Math.round(pr.w*.055)}px ${FN}`;x.fillText(posterTitle||"PHI369",margin,pr.h-margin*1.55);x.fillStyle=C.tx;x.font=`${Math.round(pr.w*.022)}px ${FN}`;x.fillText(posterSub||"Sovereign image alchemy",margin,pr.h-margin*.9);x.fillStyle=C.tm;x.font=`${Math.round(pr.w*.015)}px ${FN}`;x.textAlign="right";x.fillText(`Φ=${PHI.toFixed(3)} · 369 · ${APP_VERSION}`,pr.w-margin,pr.h-margin*.9);ld.current={1:c};mks.current={};origS.current=null;setSz({w:pr.w,h:pr.h});setLayers([{id:1,n:`Poster Forge · ${pr.n}`,vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setGuides([{type:"h",pos:Math.round(pr.h*LAM)},{type:"v",pos:Math.round(pr.w*LAM)}]);sOvl("phi");sOOp(.35);setTimeout(comp,60);flash(`Poster: ${pr.n}`);};
   const hashText=async s=>{const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");};
+  const createObservationReceipt=async(event,evidence={})=>{
+    const transfer=pendingDomistikaTransferRef.current;
+    const creative={
+      creativeManifestHash:String(transfer?.contentHash||"")||null,
+      baseContentHash:String(transfer?.baseContentHash||"")||null,
+      protectedOverlayHashes:Array.isArray(transfer?.overlays)
+        ? transfer.overlays.map(item=>String(item?.contentHash||"")).filter(Boolean)
+        : [],
+      sourceTransferVersion:Number(transfer?.version||0)||null,
+    };
+    const payload={
+      kind:"auralith.observation-receipt",
+      schema:"auralith.observation-receipt.v1",
+      version:APP_VERSION,
+      event:String(event||"observation"),
+      createdAt:new Date().toISOString(),
+      projectName,
+      size:{...sz},
+      creative,
+      capture:evidence?.capture||null,
+      bridge:evidence?.bridge||null,
+      finishing:{
+        style:lastStyleRef.current,
+        adjustments:{...adj},
+        overlay:{id:ovl,opacity:oOp},
+        historyTail:hNm.slice(-18),
+      },
+      authority:{
+        observationOnly:true,
+        renderAuthorized:false,
+        publishAuthorized:false,
+        automaticImportAuthorized:false,
+      },
+    };
+    const receiptHash="sha256:"+await hashText(JSON.stringify(payload));
+    payload.receiptId=receiptHash;
+    payload.receiptHash=receiptHash;
+    setLastReceipt(payload);
+    try{
+      const shared={
+        schema:"parallax.creative-evidence.v2",
+        profile:"parallax.creative-interop.v2",
+        createdAt:payload.createdAt,
+        event:payload.event,
+        projectName,
+        creativeManifestHash:creative.creativeManifestHash,
+        baseContentHash:creative.baseContentHash,
+        protectedOverlayHashes:creative.protectedOverlayHashes,
+        auralithCaptureHash:payload.capture?.sha256||null,
+        auralithCaptureSchema:payload.capture?.schema||null,
+        auralithReceiptHash:receiptHash,
+        auralithReceiptSchema:payload.schema,
+      };
+      localStorage.setItem("parallax-creative-evidence-v2",JSON.stringify(shared));
+    }catch(error){console.warn("[Auralith369] Could not persist creative evidence",{error});}
+    return payload;
+  };
   const exportReceipt=async()=>{try{const image=renderCompositeCanvas({checker:0,background:eF==="JPEG"?"#fff":null}).toDataURL("image/png"),imageHash=await hashText(image),payload={kind:"auralith.receipt",version:APP_VERSION,createdAt:new Date().toISOString(),projectName,size:sz,constants:{PHI,LAM,Cstar:.809017,OmegaC:.376},imageHash,layers:layers.map(l=>({id:l.id,name:l.n,visible:!!l.vis,opacity:l.op,blend:l.bl,mask:!!l.mask,blendIf:[l.biLo,l.biHi],fx:l.fx,semanticRole:l.semanticRole||null,styleProtected:!!l.styleProtected,bridgeOverlay:!!l.bridgeOverlay,sourceLayerId:l.sourceLayerId||null,sourceContentHash:l.sourceContentHash||null})),adjustments:adj,overlay:{id:ovl,opacity:oOp},gpuLab:{enabled:!!gpuEnabled,bypassed:!!gpuBypass,activePresetId:activeGpuPresetId,activePresetName:gpuPresetName,presetDirty:!!gpuPresetDirty,settings:normalizeGpuLabSettings(gpuSettings)},history:hNm.slice(-36),export:{format:eF,quality:eQ}};payload.receiptId=await hashText(JSON.stringify(payload));setLastReceipt(payload);downloadBlob(`${projectName||"auralith369"}.auralith-receipt.json`,"application/json",JSON.stringify(payload,null,2));flash("Receipt exported");return payload;}catch(e){console.error(e);flash("Receipt failed");return null;}};
   const captureVersion=()=>{const img=renderCompositeCanvas({checker:0}).toDataURL("image/png");setVersions(p=>[{name:`Version ${p.length+1}`,at:new Date().toISOString(),size:{...sz},img},...p].slice(0,9));flash("Version captured");};
   const restoreVersion=async(v)=>{try{save("Restore Version");const c=await canvasFromURL(v.img);ld.current={1:c};mks.current={};origS.current=null;setSz(v.size||{w:c.width,h:c.height});setLayers([{id:1,n:v.name||"Restored Version",vis:1,op:1,bl:"normal",mask:0,biLo:0,biHi:255,fx:{...dfx}}]);setAL(1);nid.current=2;setHasI(1);setTimeout(comp,60);flash("Version restored");}catch(e){console.error(e);flash("Restore failed");}};
@@ -498,7 +556,7 @@ export default function Auralith369(){
       const dataBase64=btoa(binary),dataUrl="data:image/png;base64,"+dataBase64;
       const digest=await crypto.subtle.digest("SHA-256",arrayBuffer);
       const sha256="sha256:"+Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,"0")).join("");
-      return {
+      const capture={
         schema:"auralith.capture.png.v1",
         authority:"canvas2d",
         projectName,
@@ -509,6 +567,23 @@ export default function Auralith369(){
         sha256,
         dataBase64,
         dataUrl,
+      };
+      const receipt=await createObservationReceipt("capture",{
+        capture:{
+          schema:capture.schema,
+          authority:capture.authority,
+          sha256:capture.sha256,
+          width:capture.width,
+          height:capture.height,
+          bytes:capture.bytes,
+          mimeType:capture.mimeType,
+        },
+      });
+      return {
+        ...capture,
+        receiptId:receipt.receiptId,
+        receiptHash:receipt.receiptHash,
+        receiptSchema:receipt.schema,
       };
     };
 
@@ -613,7 +688,17 @@ export default function Auralith369(){
         const transfer=pendingDomistikaTransferRef.current;
         if(transfer?.version===2&&typeof input==="string"&&input===transfer.image){
           const bridge=await importDomistikaOverlays(transfer);
-          return {...result,bridge};
+          const receipt=await createObservationReceipt("bridge-import",{bridge:{
+            version:2,
+            contentHash:String(transfer.contentHash||""),
+            overlayCount:bridge.overlayCount,
+            protectedLayerIds:bridge.protectedLayerIds,
+          }});
+          return {...result,bridge,observationReceipt:{
+            receiptId:receipt.receiptId,
+            receiptHash:receipt.receiptHash,
+            schema:receipt.schema,
+          }};
         }
         return result;
       },
@@ -663,8 +748,8 @@ export default function Auralith369(){
       lutList:()=>LUTS.map(lut=>({id:sdkSlug(lut.n),name:lut.n})),
       lutApply:id=>{const lut=resolveLut(id);applyLUT(lut);return {id:sdkSlug(lut.n),name:lut.n};},
 
-      styleList:()=>STYLE_CARDS.map(card=>({id:card.id,name:card.n,description:card.desc})),
-      styleApply:id=>{const card=resolveStyle(id);applyStyleCard(card);return {id:card.id,name:card.n,description:card.desc};},
+      styleList:()=>STYLE_CARDS.map(card=>({id:card.id,name:card.n,description:card.desc,intent:card.intent||null})),
+      styleApply:id=>{const card=resolveStyle(id);applyStyleCard(card);return {id:card.id,name:card.n,description:card.desc,intent:card.intent||null};},
 
       adjustmentGet:()=>({...adj}),
       adjustmentSet:values=>{
@@ -742,6 +827,12 @@ export default function Auralith369(){
         pendingDomistikaTransferRef.current=transfer;
         const opened=await loadImg(imageFileFromInput(transfer.image,{name:String(transfer.name||"Domistika artwork")+".webp"}));
         const bridge=await importDomistikaOverlays(transfer);
+        const receipt=await createObservationReceipt("bridge-import",{bridge:{
+          version:Number(transfer.version||1),
+          contentHash:String(transfer.contentHash||""),
+          overlayCount:bridge.overlayCount,
+          protectedLayerIds:bridge.protectedLayerIds,
+        }});
         return {
           ok:true,
           version:Number(transfer.version||1),
@@ -751,6 +842,11 @@ export default function Auralith369(){
           overlayCount:bridge.overlayCount,
           protectedLayerIds:bridge.protectedLayerIds,
           contentHash:String(transfer.contentHash||""),
+          observationReceipt:{
+            receiptId:receipt.receiptId,
+            receiptHash:receipt.receiptHash,
+            schema:receipt.schema,
+          },
         };
       },
       bridgeClear:()=>{

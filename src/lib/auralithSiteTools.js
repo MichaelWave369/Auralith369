@@ -1,4 +1,4 @@
-export const AURALITH_SITE_TOOLS_VERSION = '0.1.2';
+export const AURALITH_SITE_TOOLS_VERSION = '0.1.3';
 export const AURALITH_SITE_TOOLS_SCHEMA = 'auralith.site-tools.v1';
 
 const MAX_SEARCH_RESULTS = 20;
@@ -134,7 +134,17 @@ function receiptSummary(receipt) {
     createdAt: receipt.createdAt || null,
     projectName: receipt.projectName || null,
     size: receipt.size || null,
+    kind: receipt.kind || null,
+    schema: receipt.schema || null,
+    event: receipt.event || null,
+    receiptHash: receipt.receiptHash || null,
     imageHash: receipt.imageHash || null,
+    captureHash: receipt.capture?.sha256 || null,
+    creativeManifestHash: receipt.creative?.creativeManifestHash || null,
+    baseContentHash: receipt.creative?.baseContentHash || null,
+    protectedOverlayHashes: Array.isArray(receipt.creative?.protectedOverlayHashes)
+      ? receipt.creative.protectedOverlayHashes.slice(0, 16)
+      : [],
     layerCount: Array.isArray(receipt.layers) ? receipt.layers.length : null,
     gpuLab: receipt.gpuLab ? {
       enabled: Boolean(receipt.gpuLab.enabled),
@@ -262,6 +272,17 @@ function makeTools(api) {
       execute: async ({ lutId }) => {
         requireReady(api);
         return ok({ lut: api.lut.apply(cleanString(lutId, 120)) });
+      },
+    },
+    {
+      name: 'auralith_list_styles',
+      title: 'List Auralith Style Cards',
+      description: 'Read available Style Cards and their machine-readable finishing intent before applying one.',
+      inputSchema: { type: 'object', properties: {}, additionalProperties: false },
+      annotations: { readOnlyHint: true, untrustedContentHint: false, consequentialHint: false },
+      execute: async () => {
+        requireReady(api);
+        return ok({ styles: api.style.list() });
       },
     },
     {

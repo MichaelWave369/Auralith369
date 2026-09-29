@@ -19,8 +19,8 @@ function fakeApi() {
     ready:()=>true,
     capabilities:()=>({
       schema:'auralith.sdk.v1',
-      sdkVersion:'0.1.0',
-      appVersion:'v0.7.1-alpha',
+      sdkVersion:'0.1.1',
+      appVersion:'v0.7.2-alpha',
       ready:true,
       project:{name:'Night Harbor',width:1200,height:800,activeLayerId:1,layerCount:2},
       image:{loaded:true,width:1200,height:800},
@@ -31,6 +31,7 @@ function fakeApi() {
       gpu:{supported:true,active:true,cartridgeCount:1,state:{enabled:true}},
       actions:{count:1},
       receipts:{available:true,latestReceiptId:'sha256:old'},
+      capture:{available:true,schema:'auralith.capture.png.v1',authority:'canvas2d',maxDimension:2048,maxBytes:4194304},
       bridge:{domistika:{available:true}},
     }),
     project:{info:()=>({name:'Night Harbor',activeLayerId:1,layerCount:2})},
@@ -77,6 +78,18 @@ function fakeApi() {
       layers:[{id:1},{id:2}],
       gpuLab:{enabled:true,bypassed:false,activePresetId:'builtin:golden-oracle',activePresetName:'Golden Oracle'},
     })},
+    export:{capture:async({maxDimension}={})=>({
+      schema:'auralith.capture.png.v1',
+      authority:'canvas2d',
+      projectName:'Night Harbor',
+      mimeType:'image/png',
+      width:Math.min(maxDimension||2048,1400),
+      height:1000,
+      bytes:4,
+      sha256:'sha256:capture',
+      dataBase64:'cG5n',
+      dataUrl:'data:image/png;base64,cG5n',
+    })},
     commands:{
       list:()=>commands.map(c=>c.id),
       search:(query,limit)=>commands.filter(c=>JSON.stringify(c).toLowerCase().includes(String(query).toLowerCase())).slice(0,limit),
@@ -87,13 +100,13 @@ function fakeApi() {
 }
 
 test('Auralith site tools expose a compact stable finishing vocabulary', async()=>{
-  assert.equal(AURALITH_SITE_TOOLS_VERSION,'0.1.0');
+  assert.equal(AURALITH_SITE_TOOLS_VERSION,'0.1.1');
   assert.equal(AURALITH_SITE_TOOLS_SCHEMA,'auralith.site-tools.v1');
 
   const api=fakeApi();
   const tools=createAuralithSiteTools(api);
   assert.equal(Object.isFrozen(tools),true);
-  assert.equal(tools.length,14);
+  assert.equal(tools.length,15);
   assert.deepEqual(tools.map(t=>t.name),[
     'auralith_get_capabilities',
     'auralith_search_commands',
@@ -107,6 +120,7 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
     'auralith_set_adjustments',
     'auralith_get_domistika_transfer',
     'auralith_receive_domistika_transfer',
+    'auralith_capture_png',
     'auralith_export_receipt',
     'auralith_execute_command',
   ]);
@@ -116,6 +130,7 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
     'auralith_search_commands',
     'auralith_list_layers',
     'auralith_get_domistika_transfer',
+    'auralith_capture_png',
   ]);
   for(const tool of tools){
     assert.match(tool.name,/^[A-Za-z0-9_.-]+$/);
@@ -173,6 +188,16 @@ test('Auralith site tools expose a compact stable finishing vocabulary', async()
   const receivedRaw=await receiveTool.execute({});
   assert.doesNotMatch(receivedRaw,/BBBB/);
 
+  const captureTool=tools.find(t=>t.name==='auralith_capture_png');
+  const captureRaw=await captureTool.execute({maxDimension:1024});
+  const capture=JSON.parse(captureRaw);
+  assert.equal(capture.capture.schema,'auralith.capture.png.v1');
+  assert.equal(capture.capture.authority,'canvas2d');
+  assert.equal(capture.capture.width,1024);
+  assert.equal(capture.capture.dataBase64,'cG5n');
+  assert.equal('dataUrl' in capture.capture,false);
+  assert.doesNotMatch(captureRaw,/data:image\/png;base64/);
+
   const receiptTool=tools.find(t=>t.name==='auralith_export_receipt');
   const receipt=JSON.parse(await receiptTool.execute({}));
   assert.equal(receipt.receipt.receiptId,'sha256:new');
@@ -197,8 +222,8 @@ test('Auralith site tools register through modelContext with abort lifecycle', a
   };
   const state=await installAuralithSiteTools({api,modelContext});
   assert.equal(state.available,true);
-  assert.equal(state.registered.length,14);
-  assert.equal(registrations.length,14);
+  assert.equal(state.registered.length,15);
+  assert.equal(registrations.length,15);
   for(const entry of registrations) assert.ok(entry.options.signal);
   assert.equal(state.stop(),true);
 });
@@ -214,6 +239,8 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.match(source,/consequentialHint/);
   assert.match(source,/auralith\.site-tools\.v1/);
   assert.match(source,/payloadIncluded/);
+  assert.match(source,/auralith_capture_png/);
+  assert.match(source,/dataBase64/);
   assert.doesNotMatch(source,/\beval\s*\(/);
   assert.doesNotMatch(source,/new Function\s*\(/);
   assert.doesNotMatch(source,/\bfetch\s*\(/);
@@ -221,5 +248,5 @@ test('Auralith site-tool source preserves the stable authority boundaries',()=>{
   assert.doesNotMatch(source,/WebGLRenderingContext/);
 
   assert.match(app,/installAuralithSiteToolsGlobal/);
-  assert.match(editor,/APP_VERSION="v0\.7\.1-alpha"/);
+  assert.match(editor,/APP_VERSION="v0\.7\.2-alpha"/);
 });

@@ -18,6 +18,30 @@ Auralith369 is a public-alpha creative workstation by PHI369 Labs for image edit
 
 > ⚠️ **Alpha status:** This is alpha software. Auralith369 runs locally in your browser. Avoid opening untrusted `.auralith` project files until import validation is fully hardened. No warranty; MIT licensed.
 
+## Parallax Creative Interop v2 Candidate
+
+Auralith now carries the same frozen candidate interoperability profile as the downstream ParaCut/WaveForge chain:
+
+```text
+Domistika
+→ Auralith369
+→ ParaCut
+→ WaveForgeStudio
+```
+
+Profile:
+
+```text
+parallax.creative-interop.v2
+SHA-256 364448afa4997b4fb297a67e1d3cec73ec3bae500855ec21469a24df8ef01be0
+```
+
+Auralith CI recomputes the profile hash independently.
+
+The optional CineSwarm release-reference extension remains unratified on the receiver side.
+
+See [Parallax Creative Interop v2](docs/PARALLAX_CREATIVE_INTEROP_V2.md).
+
 ## v0.7.3-alpha — Creative Bridge v2
 
 Auralith now preserves protected Domistika layers separately from the gradeable base artwork.

@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.7.1-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.7.2-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -17,6 +17,30 @@
 Auralith369 is a public-alpha creative workstation by PHI369 Labs for image editing, poster forging, style cards, manifests, and auditable creative receipts.
 
 > ⚠️ **Alpha status:** This is alpha software. Auralith369 runs locally in your browser. Avoid opening untrusted `.auralith` project files until import validation is fully hardened. No warranty; MIT licensed.
+
+## v0.7.2-alpha — Agent Capture + Acceptance 001
+
+Auralith now has an agent-friendly finished-art readback contract:
+
+```js
+const capture = await Auralith.export.capture({
+  maxDimension: 2048
+})
+```
+
+It returns bounded PNG metadata plus base64/data-URL pixels, dimensions, byte count, SHA-256, and an explicit `authority: 'canvas2d'` marker.
+
+The native site-tool layer also adds:
+
+```text
+auralith_capture_png
+```
+
+which returns a single base64 payload plus metadata instead of duplicating the same image as both base64 and data URL.
+
+The first live Domistika → Auralith end-to-end run is preserved as **Native Creative Chain Acceptance 001**.
+
+See [Agent Capture v0.7.2](docs/AGENT_CAPTURE_V072.md) and [Native Creative Chain Acceptance 001](docs/acceptance/NATIVE_CREATIVE_CHAIN_ACCEPTANCE_001.md).
 
 ## v0.7.1-alpha — Native WebMCP Site Tools
 

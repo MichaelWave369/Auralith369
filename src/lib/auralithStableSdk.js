@@ -1,4 +1,4 @@
-export const AURALITH_SDK_VERSION = '0.1.2';
+export const AURALITH_SDK_VERSION = '0.1.3';
 export const AURALITH_SDK_SCHEMA = 'auralith.sdk.v1';
 
 let runtimeAdapter = null;
@@ -293,6 +293,8 @@ function capabilities() {
     receipts: {
       available: typeof runtimeAdapter?.receiptExport === 'function',
       latestReceiptId: receiptLatest()?.receiptId || null,
+      latestReceiptSchema: receiptLatest()?.schema || receiptLatest()?.kind || null,
+      observationSchema: 'auralith.observation-receipt.v1',
     },
     capture: {
       available: typeof runtimeAdapter?.exportCapture === 'function',

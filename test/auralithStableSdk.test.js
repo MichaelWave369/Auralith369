@@ -15,9 +15,9 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
 
   assert.equal(target.Auralith, api);
   assert.equal(api.schema, 'auralith.sdk.v1');
-  assert.equal(api.sdkVersion, '0.1.0');
+  assert.equal(api.sdkVersion, '0.1.1');
   assert.equal(AURALITH_SDK_SCHEMA, 'auralith.sdk.v1');
-  assert.equal(AURALITH_SDK_VERSION, '0.1.0');
+  assert.equal(AURALITH_SDK_VERSION, '0.1.1');
   assert.equal(Object.isFrozen(api), true);
   assert.equal(Object.isFrozen(api.layers), true);
   assert.equal(Object.isFrozen(api.commands), true);
@@ -27,7 +27,7 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
   const fakePng = new Blob(['png'], { type: 'image/png' });
   const adapter = {
     capabilities: () => ({
-      appVersion: 'v0.7.0-alpha',
+      appVersion: 'v0.7.2-alpha',
       bridge: { domistika: { available: true } },
     }),
     projectInfo: () => ({
@@ -71,6 +71,18 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
     bridgeGet: async () => ({ protocol: 'parallax-creative-bridge', source: 'domistika' }),
     bridgeClear: () => true,
     exportPng: async () => fakePng,
+    exportCapture: async ({ maxDimension } = {}) => ({
+      schema: 'auralith.capture.png.v1',
+      authority: 'canvas2d',
+      projectName: 'SDK Test',
+      mimeType: 'image/png',
+      width: Math.min(maxDimension || 2048, 1200),
+      height: 800,
+      bytes: 4,
+      sha256: 'sha256:capture',
+      dataBase64: 'cG5n',
+      dataUrl: 'data:image/png;base64,cG5n',
+    }),
     exportProject: async () => ({ kind: 'auralith.project', name: 'SDK Test' }),
   };
 
@@ -78,7 +90,7 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
   assert.equal(api.ready(), true);
 
   const caps = api.capabilities();
-  assert.equal(caps.appVersion, 'v0.7.0-alpha');
+  assert.equal(caps.appVersion, 'v0.7.2-alpha');
   assert.equal(caps.layers.count, 2);
   assert.equal(caps.fx.count, 1);
   assert.equal(caps.lut.count, 1);
@@ -86,6 +98,9 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
   assert.equal(caps.gpu.supported, true);
   assert.equal(caps.gpu.cartridgeCount, 1);
   assert.equal(caps.actions.count, 1);
+  assert.equal(caps.capture.available, true);
+  assert.equal(caps.capture.authority, 'canvas2d');
+  assert.equal(caps.capture.maxDimension, 2048);
   assert.equal(caps.bridge.domistika.available, true);
   assert.equal(Object.isFrozen(caps), true);
 
@@ -117,6 +132,19 @@ test('stable SDK installs a frozen v1 facade and binds live capabilities', async
   assert.equal(png, fakePng);
   assert.equal(png.type, 'image/png');
 
+  const capture = await api.export.capture({ maxDimension: 1024 });
+  assert.equal(capture.schema, 'auralith.capture.png.v1');
+  assert.equal(capture.authority, 'canvas2d');
+  assert.equal(capture.width, 1024);
+  assert.equal(capture.mimeType, 'image/png');
+  assert.equal(capture.sha256, 'sha256:capture');
+  assert.equal(capture.dataBase64, 'cG5n');
+  assert.match(capture.dataUrl, /^data:image\/png;base64,/);
+  assert.equal(Object.isFrozen(capture), true);
+
+  const commandCapture = await api.commands.execute('export.capture', { maxDimension: 900 });
+  assert.equal(commandCapture.width, 900);
+
   const bridge = await api.bridge.domistika.receive();
   assert.equal(bridge.source, 'domistika');
 
@@ -137,6 +165,8 @@ test('stable SDK source exposes no arbitrary execution or network surface', () =
   assert.match(source, /commands:/);
   assert.match(source, /gpu:/);
   assert.match(source, /receipts:/);
+  assert.match(source, /capture: exportCapture/);
+  assert.match(source, /auralith\.capture\.png\.v1/);
 });
 
 test('React workstation binds the stable SDK to real finishing functions', () => {
@@ -153,6 +183,9 @@ test('React workstation binds the stable SDK to real finishing functions', () =>
   assert.match(source, /receiptExport:/);
   assert.match(source, /bridgeReceive:/);
   assert.match(source, /exportPng:/);
+  assert.match(source, /exportCapture:/);
+  assert.match(source, /AURALITH_SDK_CAPTURE_TOO_LARGE/);
+  assert.match(source, /crypto\.subtle\.digest\("SHA-256"/);
   assert.match(source, /32\*1024\*1024/);
   assert.match(source, /image\\\/\(\?:png\|jpeg\|webp\)/);
 });

@@ -5,7 +5,7 @@
 <p align="center">
   <a href="https://michaelwave369.github.io/Auralith369/">Live Demo</a>
   ·
-  <a href="RELEASE_NOTES_v0.7.2-alpha.md">Release Notes</a>
+  <a href="RELEASE_NOTES_v0.7.3-alpha.md">Release Notes</a>
   ·
   <a href="docs/ALPHA_NOTES.md">Alpha Notes</a>
 </p>
@@ -17,6 +17,36 @@
 Auralith369 is a public-alpha creative workstation by PHI369 Labs for image editing, poster forging, style cards, manifests, and auditable creative receipts.
 
 > ⚠️ **Alpha status:** This is alpha software. Auralith369 runs locally in your browser. Avoid opening untrusted `.auralith` project files until import validation is fully hardened. No warranty; MIT licensed.
+
+## v0.7.3-alpha — Creative Bridge v2
+
+Auralith now preserves protected Domistika layers separately from the gradeable base artwork.
+
+```text
+verified base raster
++ protected type / motion-ignore overlays
+→ separate Auralith layers
+→ base gets graded
+→ protected overlays composite last
+```
+
+Creative Bridge v2 verifies base pixels, overlay pixels, and the canonical semantic manifest independently.
+
+Stable SDK v0.1.2 adds:
+
+```js
+await Auralith.bridge.domistika.import()
+```
+
+and native site tools v0.1.2 add:
+
+```text
+auralith_import_domistika_transfer
+```
+
+Creative Bridge v1 remains supported.
+
+See [Creative Bridge v2](docs/CREATIVE_BRIDGE_V2_V073.md) and [v0.7.3-alpha Release Notes](RELEASE_NOTES_v0.7.3-alpha.md).
 
 ## v0.7.2-alpha — Agent Capture + Acceptance 001
 

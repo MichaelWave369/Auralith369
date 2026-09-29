@@ -688,7 +688,17 @@ export default function Auralith369(){
         const transfer=pendingDomistikaTransferRef.current;
         if(transfer?.version===2&&typeof input==="string"&&input===transfer.image){
           const bridge=await importDomistikaOverlays(transfer);
-          return {...result,bridge};
+          const receipt=await createObservationReceipt("bridge-import",{bridge:{
+            version:2,
+            contentHash:String(transfer.contentHash||""),
+            overlayCount:bridge.overlayCount,
+            protectedLayerIds:bridge.protectedLayerIds,
+          }});
+          return {...result,bridge,observationReceipt:{
+            receiptId:receipt.receiptId,
+            receiptHash:receipt.receiptHash,
+            schema:receipt.schema,
+          }};
         }
         return result;
       },
@@ -738,8 +748,8 @@ export default function Auralith369(){
       lutList:()=>LUTS.map(lut=>({id:sdkSlug(lut.n),name:lut.n})),
       lutApply:id=>{const lut=resolveLut(id);applyLUT(lut);return {id:sdkSlug(lut.n),name:lut.n};},
 
-      styleList:()=>STYLE_CARDS.map(card=>({id:card.id,name:card.n,description:card.desc})),
-      styleApply:id=>{const card=resolveStyle(id);applyStyleCard(card);return {id:card.id,name:card.n,description:card.desc};},
+      styleList:()=>STYLE_CARDS.map(card=>({id:card.id,name:card.n,description:card.desc,intent:card.intent||null})),
+      styleApply:id=>{const card=resolveStyle(id);applyStyleCard(card);return {id:card.id,name:card.n,description:card.desc,intent:card.intent||null};},
 
       adjustmentGet:()=>({...adj}),
       adjustmentSet:values=>{
@@ -817,6 +827,12 @@ export default function Auralith369(){
         pendingDomistikaTransferRef.current=transfer;
         const opened=await loadImg(imageFileFromInput(transfer.image,{name:String(transfer.name||"Domistika artwork")+".webp"}));
         const bridge=await importDomistikaOverlays(transfer);
+        const receipt=await createObservationReceipt("bridge-import",{bridge:{
+          version:Number(transfer.version||1),
+          contentHash:String(transfer.contentHash||""),
+          overlayCount:bridge.overlayCount,
+          protectedLayerIds:bridge.protectedLayerIds,
+        }});
         return {
           ok:true,
           version:Number(transfer.version||1),
@@ -826,6 +842,11 @@ export default function Auralith369(){
           overlayCount:bridge.overlayCount,
           protectedLayerIds:bridge.protectedLayerIds,
           contentHash:String(transfer.contentHash||""),
+          observationReceipt:{
+            receiptId:receipt.receiptId,
+            receiptHash:receipt.receiptHash,
+            schema:receipt.schema,
+          },
         };
       },
       bridgeClear:()=>{
